@@ -7,10 +7,11 @@ from flask import Flask, jsonify, abort, request
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, current_user
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-# Importing python files from the project 
+# Importing python files from the project
 import dbconnection
+from user_management import User, table_userinfos_exists, create_table_userinfos
 
 
 # Starting app
@@ -23,18 +24,9 @@ bcrypt = Bcrypt(app)
 
 # User Authentcation Menagement
 app.config["JWT_SECRET_KEY"] = "my-secret-key"
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=15)
-app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(seconds=30)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=30)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=6)
 jwt = JWTManager(app)
-
-# User object
-class User:
-    def __init__(self, user_id, full_name, email, phone, username):
-        self.id = user_id
-        self.full_name = full_name
-        self.email = email
-        self.phone = phone
-        self.username = username
 
 # Callback function to get user identity (id) for JWT
 @jwt.user_identity_loader
@@ -59,11 +51,11 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 # User menagement routes
-@app.route('/register-user', methods=['POST'])
+@app.route('/user', methods=['POST']) 
 def register_user():
     js = request.get_json()
 
-    # checking if the user information was sent in the request
+    # checking if the user information was sent into the request
     if not js:
         abort(400, 'Missing user infoormations')
 
@@ -74,81 +66,31 @@ def register_user():
             abort(400, f'Missing {field}')
         user_infos[field] = js[field].lower() if field in ['email', 'username'] else js[field]
 
-    # connecting to the database
-    conn = dbconnection.connect_to_postgres()
-    cursor = conn.cursor()
-
-    # checking if the table "userinfos" exists
-    cursor.execute(
-        '''
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public'
-                AND table_name = 'userinfos'
-            );
-        '''
-    )
-    if not cursor.fetchone()[0]:
-        # creating database if it not exist
-        try:
-            cursor.execute(
-                '''
-                    CREATE TABLE userinfos(
-                        user_id SERIAL PRIMARY KEY, 
-                        full_name VARCHAR(255), 
-                        email VARCHAR(255), 
-                        phone VARCHAR(20), 
-                        username VARCHAR(255), 
-                        password TEXT,
-                        creation_datetime TIMESTAMP
-                    );
-                '''
-            )
-            conn.commit()
-        except Exception as e:
-            conn.close()
-            abort(500, f'Error to create table user: {e}')
-
-    # checking if username or email already exists
-    user = False
-    for field in ['email', 'username']:
-        try:
-            cursor.execute(f'SELECT {field} FROM userinfos WHERE {field} = %s', (user_infos[field],))
-            if cursor.fetchone() is not None:
-                user = True
-        except Exception as e:
-            conn.close()
-            abort(500, f'Error checking user: {e}')
-        if user == True:
-            print(field)
-            abort(401, f'{field} already exists')
+    # creating user object
+    user = User(0, user_infos['full_name'], user_infos['email'], user_infos['phone'], user_infos['username'])
 
     # encrypting the password
     hashed_password = bcrypt.generate_password_hash(user_infos['password'])
-    user_infos['password'] = hashed_password.decode('utf-8')
+    password = hashed_password.decode('utf-8')
+
+    # checking if the table "userinfos" exists into postgres
+    if not table_userinfos_exists():
+        # creating table "userinfos" into postgress
+        create_table = create_table_userinfos()
+        if not create_table:
+            abort(500, 'Error to create table user')
+
+    # checking if username or email already exists
+    if user.username_exists():
+        abort(401, f'{user.username} already exists')
+    elif user.email_exists():
+        abort(401, f'{user.email} already exists')
 
     # registering user
-    try:
-        cursor.execute('''
-            INSERT INTO userinfos (full_name, email, phone, username, password, creation_datetime)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (user_infos['full_name'], user_infos['email'], user_infos['phone'], user_infos['username'], user_infos['password'], datetime.now(),))
-        conn.commit()
-    except Exception as e:
-        conn.close()
-        abort(500, f'Error to inseart infos on database: {e}')
-        
+    user_id = user.register(password)
+    if user_id != 0:
+        user.id = user_id
 
-    # getting user_id
-    cursor.execute('''
-        SELECT user_id FROM userinfos WHERE username = %s
-    ''', (user_infos['username'],))
-    user_infos['user_id'] = cursor.fetchone()[0]
-
-    # returning values
-    user_infos.pop('password', None)
-
-    user = User(user_infos['user_id'], user_infos['full_name'], user_infos['email'], user_infos['phone'], user_infos['username'])
     access_token = create_access_token(identity=user)
     refresh_token = create_refresh_token(identity=user)
     response = jsonify(
@@ -158,7 +100,7 @@ def register_user():
 
     return response, 200
 
-@app.route('/authenticate-user', methods=['POST'])
+@app.route('/user/authenticate', methods=['POST'])
 def authenticate_user():
     js = request.get_json()
 
@@ -218,7 +160,7 @@ def authenticate_user():
 
     return response, status_code
 
-@app.route('/refresh-authentication', methods=['POST'])
+@app.route('/user/refresh-authentication', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_authentication():
     identity = get_jwt_identity()
@@ -238,7 +180,7 @@ def refresh_authentication():
     
     return jsonify(access_token=access_token, refresh_token=refresh_token), 200
 
-@app.route('/get-authenticated-user-infos', methods=['GET'])
+@app.route('/user', methods=['GET'])
 @jwt_required()
 def get_authentcated_user_infos():
     return jsonify(
@@ -248,6 +190,7 @@ def get_authentcated_user_infos():
         phone=current_user.phone,
         username=current_user.username,
     ), 200
+
 
 if __name__ == '__main__':
     app.run(
