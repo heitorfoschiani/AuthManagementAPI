@@ -12,20 +12,20 @@ with open('C:/Users/heito/OneDrive - Fundação São Paulo/Heitor/Projects/Datab
 
 dbhost = lines[0].strip()
 dbport = lines[1].strip()
-dbname = lines[2].strip()
-dbuser = lines[3].strip()
-dbpassword = lines[4].strip()
+dbuser = lines[2].strip()
+dbpassword = lines[3].strip()
+dbname = 'LoginManagement'
 
 
 # Creating postgresSQL connection
-def connect_to_postgres(host=dbhost, port=dbport, dbname=dbname, user=dbuser, password=dbpassword, connection_type='connection'):
+def connect_to_postgres(connection_type='connection', host=dbhost, port=dbport, dbname=dbname, user=dbuser, password=dbpassword):
     if connection_type == 'connection':
         conn = psycopg2.connect(
             host=host,
             port=port,
-            dbname=dbname,
             user=user,
             password=password,
+            dbname=dbname,
         )
 
         return conn
@@ -34,3 +34,5 @@ def connect_to_postgres(host=dbhost, port=dbport, dbname=dbname, user=dbuser, pa
         engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}")
 
         return engine
+    
+    

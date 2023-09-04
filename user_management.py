@@ -20,12 +20,12 @@ class User:
 
         # checking if username already exists
         cursor.execute(f'SELECT username FROM userinfos WHERE username = %s', (self.username,))
-        if cursor.fetchone() is not None:
-            conn.close()
-            return True
-
+        fetch = cursor.fetchone()
         conn.close()
-        return False
+        if not fetch:
+            return False
+
+        return True
 
     def email_exists(self):
         # connecting to the database
@@ -34,12 +34,12 @@ class User:
 
         # checking if email already exists
         cursor.execute(f'SELECT email FROM userinfos WHERE email = %s', (self.email,))
-        if cursor.fetchone() is not None:
-            conn.close()
-            return True
-
+        fetch = cursor.fetchone()
         conn.close()
-        return False
+        if not fetch:
+            return False
+
+        return True
 
     def register(self, password: str):
         # connecting to the database
@@ -47,28 +47,36 @@ class User:
         cursor = conn.cursor()
 
         try:
+            # creating user into database
             cursor.execute('''
                 INSERT INTO userinfos (full_name, email, phone, username, password, creation_datetime)
                 VALUES (%s, %s, %s, %s, %s, %s)
             ''', (self.full_name, self.email, self.phone, self.username, password, datetime.now(),))
             conn.commit()
-        except Exception as e:
+
+            # getting user_id
+            cursor.execute('''
+                SELECT user_id FROM userinfos WHERE username = %s
+            ''', (self.username,))
+            user_id = cursor.fetchone()[0]
+        except:
+            return None
+        finally:
             conn.close()
-            return 0
 
-        # getting user_id
-        cursor.execute('''
-            SELECT user_id FROM userinfos WHERE username = %s
-        ''', (self.username,))
-        user_id = cursor.fetchone()[0]
-
-        conn.close()
         return user_id
-
-    def check_password():
-            pass
     
+    def set_as_free_access(self):
+        pass
 
+    def set_as_privileged_access(self):
+        pass
+
+    def set_as_adm_access(self):
+        pass
+
+
+# Table "userinfos" management
 def table_userinfos_exists():
     # connecting to the database
     conn = dbconnection.connect_to_postgres()
@@ -100,7 +108,7 @@ def create_table_userinfos():
     try:
         cursor.execute(
             '''
-                CREATE TABLE userinfos(
+                CREATE TABLE userinfos (
                     user_id SERIAL PRIMARY KEY, 
                     full_name VARCHAR(255), 
                     email VARCHAR(255), 
@@ -108,6 +116,30 @@ def create_table_userinfos():
                     username VARCHAR(255), 
                     password TEXT,
                     creation_datetime TIMESTAMP
+                );
+            '''
+        )
+        conn.commit()
+        
+        return True
+    except:
+        return False
+    finally:
+        conn.close()
+
+
+
+    # connecting to the database
+    conn = dbconnection.connect_to_postgres()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            '''
+                CREATE TABLE useraccess (
+                    user_id SMALLINT, 
+                    access SMALLINT,
+                    execution_datetime TIMESTAMP
                 );
             '''
         )

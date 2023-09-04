@@ -11,7 +11,7 @@ from datetime import timedelta
 
 # Importing python files from the project
 import dbconnection
-from user_management import User, table_userinfos_exists, create_table_userinfos
+from user_management import *
 
 
 # Starting app
@@ -78,7 +78,7 @@ def register_user():
         # creating table "userinfos" into postgress
         create_table = create_table_userinfos()
         if not create_table:
-            abort(500, 'Error to create table user')
+            abort(500, 'Error to create table userinfos')
 
     # checking if username or email already exists
     if user.username_exists():
@@ -88,9 +88,9 @@ def register_user():
 
     # registering user
     user_id = user.register(password)
-    if user_id != 0:
+    if user_id:
         user.id = user_id
-
+    
     access_token = create_access_token(identity=user)
     refresh_token = create_refresh_token(identity=user)
     response = jsonify(
@@ -190,6 +190,7 @@ def get_authentcated_user_infos():
         phone=current_user.phone,
         username=current_user.username,
     ), 200
+
 
 
 if __name__ == '__main__':
