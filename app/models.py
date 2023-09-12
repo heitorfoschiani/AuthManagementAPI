@@ -1,10 +1,34 @@
 # Importing libraries
+from flask_restx import fields
 from datetime import datetime
 
 # Importing python files from the project
 import dbconnection
+from app.extensions import api
 
-# User object
+
+user_model = api.model('User', {
+    'id': fields.Integer,
+    'full_name': fields.String,
+    'email': fields.String,
+    'phone': fields.String,
+    'username': fields.String,
+})
+
+register_user_model = api.model('RegisterUser', {
+    'full_name': fields.String,
+    'email': fields.String,
+    'phone': fields.String,
+    'username': fields.String,
+    'password': fields.String,
+})
+
+authenticate_user_model = api.model('AuthenticateUser', {
+    'username': fields.String,
+    'password': fields.String
+})
+
+
 class User:
     def __init__(self, user_id: int, full_name: str, email: str, phone: str, username: str):
         self.id = user_id
@@ -74,79 +98,3 @@ class User:
 
     def set_as_adm_access(self):
         pass
-
-
-# Table "userinfos" management
-def table_userinfos_exists():
-    # connecting to the database
-    conn = dbconnection.connect_to_postgres()
-    cursor = conn.cursor()
-
-    # checking if the table "userinfos" exists
-    cursor.execute(
-        '''
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public'
-                AND table_name = 'userinfos'
-            );
-        '''
-    )
-
-    if not cursor.fetchone()[0]:
-        conn.close()
-        return False
-
-    conn.close()
-    return True
-
-def create_table_userinfos():
-    # connecting to the database
-    conn = dbconnection.connect_to_postgres()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
-            '''
-                CREATE TABLE userinfos (
-                    user_id SERIAL PRIMARY KEY, 
-                    full_name VARCHAR(255), 
-                    email VARCHAR(255), 
-                    phone VARCHAR(20), 
-                    username VARCHAR(255), 
-                    password TEXT,
-                    creation_datetime TIMESTAMP
-                );
-            '''
-        )
-        conn.commit()
-        
-        return True
-    except:
-        return False
-    finally:
-        conn.close()
-
-
-
-    # connecting to the database
-    conn = dbconnection.connect_to_postgres()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
-            '''
-                CREATE TABLE useraccess (
-                    user_id SMALLINT, 
-                    access SMALLINT,
-                    execution_datetime TIMESTAMP
-                );
-            '''
-        )
-        conn.commit()
-        
-        return True
-    except:
-        return False
-    finally:
-        conn.close()
