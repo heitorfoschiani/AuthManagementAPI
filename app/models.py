@@ -15,6 +15,10 @@ user_model = api.model('User', {
     'username': fields.String,
 })
 
+get_user_model = api.model('GetUser', {
+    'id': fields.Integer,
+})
+
 register_user_model = api.model('RegisterUser', {
     'full_name': fields.String,
     'email': fields.String,
@@ -25,7 +29,7 @@ register_user_model = api.model('RegisterUser', {
 
 authenticate_user_model = api.model('AuthenticateUser', {
     'username': fields.String,
-    'password': fields.String
+    'password': fields.String,
 })
 
 

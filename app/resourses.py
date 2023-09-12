@@ -6,7 +6,7 @@ from flask_bcrypt import Bcrypt
 
 # Importing python files from the project
 from dbconnection import connect_to_postgres, table_userinfos_exists, create_table_userinfos
-from app.models import User, register_user_model, user_model, authenticate_user_model
+from app.models import User, register_user_model, get_user_model, user_model, authenticate_user_model
 
 authorizations = {
     "jsonWebToken": {
@@ -59,6 +59,7 @@ class UserAPI(Resource):
         }
 
         return response, 200
+
 
 @ns.route('/authentication')
 class Authentication(Resource):
@@ -123,6 +124,7 @@ class Authentication(Resource):
     
 @ns.route('/refresh-authentication')
 class RefreshAuthentication(Resource):
+    @ns.doc(security="jsonWebToken")
     @jwt_required()
     def post(self):
         identity = get_jwt_identity()
