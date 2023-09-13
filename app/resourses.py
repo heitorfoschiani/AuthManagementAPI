@@ -21,7 +21,7 @@ ns = Namespace(
 )
 
 @ns.route('/user')
-class UserAPI(Resource):
+class RegisterUser(Resource):
     @ns.expect(register_user_model)
     def post(self):
         # creating user object
@@ -60,6 +60,45 @@ class UserAPI(Resource):
 
         return response, 200
 
+    @ns.marshal_with(user_model)
+    @ns.doc(security="jsonWebToken")
+    @jwt_required()
+    def get(self):
+        return current_user
+    
+@ns.route('/user/<int:user_id>')
+class UserAPI(Resource):
+    @ns.marshal_with(user_model)
+    @ns.doc(security="jsonWebToken")
+    @jwt_required()
+    def get(self, user_id):
+        try:
+            conn = connect_to_postgres()
+            cursor = conn.cursor()
+            cursor.execute('SELECT user_id, full_name, email, phone, username FROM userinfos WHERE user_id = %s', (user_id,))
+            user_data = cursor.fetchone()
+            if not user_data:
+                abort(404, 'User not fonded')
+        except Exception as e:
+            abort(500, f'Error fetching user: {e}')
+        finally:
+            conn.close()
+
+        user = User(user_data[0], user_data[1], user_data[2], user_data[3], user_data[4])
+
+        return user
+    
+    @ns.marshal_with(user_model)
+    @ns.doc(security="jsonWebToken")
+    @jwt_required()
+    def put(self, user_id):
+        pass
+
+    @ns.marshal_with(user_model)
+    @ns.doc(security="jsonWebToken")
+    @jwt_required()
+    def delete(self, user_id):
+        pass
 
 @ns.route('/authentication')
 class Authentication(Resource):
@@ -114,13 +153,6 @@ class Authentication(Resource):
             status_code = 404
 
         return response, status_code
-    
-    @ns.doc(security="jsonWebToken")
-    @ns.marshal_with(user_model)
-    @jwt_required()
-    def get(self):
-        # The post method of this end-point  returns the authenticated user informations
-        return current_user
     
 @ns.route('/refresh-authentication')
 class RefreshAuthentication(Resource):
