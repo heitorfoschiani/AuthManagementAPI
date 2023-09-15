@@ -2,7 +2,7 @@
 from flask_restx import fields
 
 # Importing python files from the project
-from api import api
+from api.__initi__ import api
 
 
 user_model = api.model('User', {
