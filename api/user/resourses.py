@@ -5,8 +5,10 @@ from flask_restx import Resource, Namespace
 from flask_bcrypt import Bcrypt
 
 # Importing python files from the project
-from dbconnection import connect_to_postgres, table_userinfos_exists, create_table_userinfos
-from app.models import User, register_user_model, get_user_model, user_model, authenticate_user_model
+from database.dbconnection import connect_to_postgres
+from database.dbmanagement import userinfos_db
+from api.user.objects import User
+from api.user.models import register_user_model, user_model, authenticate_user_model
 
 authorizations = {
     "jsonWebToken": {
@@ -15,22 +17,22 @@ authorizations = {
         "name": "Authorization"
     }
 }
-ns = Namespace(
-    'api-authentication-menagement', 
+ns_user = Namespace(
+    'user', 
     authorizations=authorizations
 )
 
-@ns.route('/user')
+@ns_user.route('/')
 class RegisterUser(Resource):
-    @ns.expect(register_user_model)
+    @ns_user.expect(register_user_model)
     def post(self):
         # creating user object
-        user = User(user_id=0, full_name=ns.payload['full_name'], email=ns.payload['email'], phone=ns.payload['phone'], username=ns.payload['username'])
+        user = User(user_id=0, full_name=ns_user.payload['full_name'], email=ns_user.payload['email'], phone=ns_user.payload['phone'], username=ns_user.payload['username'])
 
         # checking if the table "userinfos" exists into postgres
-        if not table_userinfos_exists():
+        if not userinfos_db.table_userinfos_exists():
             # creating table "userinfos" into postgress
-            create_table = create_table_userinfos()
+            create_table = userinfos_db.create_table_userinfos()
             if not create_table:
                 abort(500, 'Error on create table userinfos')
 
@@ -42,7 +44,7 @@ class RegisterUser(Resource):
 
         # encrypting the password
         bcrypt = Bcrypt(current_app)
-        hashed_password = bcrypt.generate_password_hash(ns.payload['password'])
+        hashed_password = bcrypt.generate_password_hash(ns_user.payload['password'])
         password = hashed_password.decode('utf-8')
 
         # registering user
@@ -60,16 +62,16 @@ class RegisterUser(Resource):
 
         return response, 200
 
-    @ns.marshal_with(user_model)
-    @ns.doc(security="jsonWebToken")
+    @ns_user.marshal_with(user_model)
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self):
         return current_user
     
-@ns.route('/user/<int:user_id>')
+@ns_user.route('/<int:user_id>')
 class UserAPI(Resource):
-    @ns.marshal_with(user_model)
-    @ns.doc(security="jsonWebToken")
+    @ns_user.marshal_with(user_model)
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self, user_id):
         try:
@@ -88,21 +90,21 @@ class UserAPI(Resource):
 
         return user
     
-    @ns.marshal_with(user_model)
-    @ns.doc(security="jsonWebToken")
+    @ns_user.marshal_with(user_model)
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def put(self, user_id):
         pass
 
-    @ns.marshal_with(user_model)
-    @ns.doc(security="jsonWebToken")
+    @ns_user.marshal_with(user_model)
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def delete(self, user_id):
         pass
 
-@ns.route('/authentication')
-class Authentication(Resource):
-    @ns.expect(authenticate_user_model)
+@ns_user.route('/authenticate')
+class Authenticate(Resource):
+    @ns_user.expect(authenticate_user_model)
     def post(self):
         # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
 
@@ -110,7 +112,7 @@ class Authentication(Resource):
         try:
             conn = connect_to_postgres()
             cursor = conn.cursor()
-            cursor.execute('SELECT user_id, full_name, email, phone, username, password FROM userinfos WHERE username = %s', (ns.payload['username'],))
+            cursor.execute('SELECT user_id, full_name, email, phone, username, password FROM userinfos WHERE username = %s', (ns_user.payload['username'],))
             user_data = cursor.fetchone()
         except Exception as e:
             abort(500, f'Error fetching user: {e}')
@@ -121,7 +123,7 @@ class Authentication(Resource):
         if user_data:
             # checking password
             bcrypt = Bcrypt(current_app)
-            if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns.payload['password']):
+            if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns_user.payload['password']):
                 # authenticating user
                 user = User(user_data[0], user_data[1], user_data[2], user_data[3], user_data[4])
                 access_token = create_access_token(identity=user)
@@ -154,9 +156,9 @@ class Authentication(Resource):
 
         return response, status_code
     
-@ns.route('/refresh-authentication')
+@ns_user.route('/refresh-authentication')
 class RefreshAuthentication(Resource):
-    @ns.doc(security="jsonWebToken")
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def post(self):
         identity = get_jwt_identity()

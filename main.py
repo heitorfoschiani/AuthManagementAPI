@@ -1,5 +1,5 @@
 # Importing python files from the project
-from app.app import create_app
+from app import create_app
 
 # Starting app
 app = create_app()

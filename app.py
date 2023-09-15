@@ -6,10 +6,10 @@ from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
 # Importing python files from the project
-import dbconnection
-from app.models import User
-from app.extensions import api
-from app.resourses import ns
+import database.dbconnection as dbconnection
+from api.user.objects import User
+from api.__initi__ import api
+from api.user.resourses import ns_user
 
 
 def create_app():
@@ -47,6 +47,6 @@ def create_app():
     CORS(app)
 
     api.init_app(app)
-    api.add_namespace(ns)
+    api.add_namespace(ns_user)
 
     return app
