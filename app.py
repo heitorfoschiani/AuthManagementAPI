@@ -8,7 +8,7 @@ from datetime import timedelta
 # Importing python files from the project
 import database.dbconnection as dbconnection
 from api.user.objects import User
-from api.__initi__ import api
+from api import api
 from api.user.resourses import ns_user
 
 
