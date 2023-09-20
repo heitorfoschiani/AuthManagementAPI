@@ -6,7 +6,7 @@ from flask_bcrypt import Bcrypt
 
 # Importing python files from the project
 from database.dbconnection import connect_to_postgres
-from database.dbmanagement import userinfos_db
+from database.dbmanagement.users_table import table_users_exists, create_table_users
 from api.user.objects import User
 from api.user.models import register_user_model, user_model, authenticate_user_model
 
@@ -29,12 +29,12 @@ class RegisterUser(Resource):
         # creating user object
         user = User(user_id=0, full_name=ns_user.payload['full_name'], email=ns_user.payload['email'], phone=ns_user.payload['phone'], username=ns_user.payload['username'])
 
-        # checking if the table "userinfos" exists into postgres
-        if not userinfos_db.table_userinfos_exists():
-            # creating table "userinfos" into postgress
-            create_table = userinfos_db.create_table_userinfos()
+        # checking if the table "users" exists into postgres
+        if not table_users_exists():
+            # creating table "users" into postgress
+            create_table = create_table_users()
             if not create_table:
-                abort(500, 'Error on create table userinfos')
+                abort(500, 'Error on create table users')
 
         # checking if username or email already exists
         if user.username_exists():
@@ -55,7 +55,11 @@ class RegisterUser(Resource):
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
         response = {
-            'user_id': user.id,
+            'id': user.id,
+            'full_name': user.full_name,
+            'email': user.email,
+            'phone': user.phone,
+            'username': user.username,
             'access_token': access_token,
             'refresh_token': refresh_token,
         }
@@ -77,7 +81,7 @@ class UserAPI(Resource):
         try:
             conn = connect_to_postgres()
             cursor = conn.cursor()
-            cursor.execute('SELECT user_id, full_name, email, phone, username FROM userinfos WHERE user_id = %s', (user_id,))
+            cursor.execute('SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', (user_id,))
             user_data = cursor.fetchone()
             if not user_data:
                 abort(404, 'User not fonded')
@@ -112,7 +116,7 @@ class Authenticate(Resource):
         try:
             conn = connect_to_postgres()
             cursor = conn.cursor()
-            cursor.execute('SELECT user_id, full_name, email, phone, username, password FROM userinfos WHERE username = %s', (ns_user.payload['username'],))
+            cursor.execute('SELECT user_id, full_name, email, phone, username, password FROM users WHERE username = %s', (ns_user.payload['username'],))
             user_data = cursor.fetchone()
         except Exception as e:
             abort(500, f'Error fetching user: {e}')
@@ -131,6 +135,7 @@ class Authenticate(Resource):
                 response = {
                     'username': True,
                     'password': True,
+                    'id': user.id,
                     'access_token': access_token,
                     'refresh_token': refresh_token,
                 }
@@ -140,6 +145,7 @@ class Authenticate(Resource):
                 response = {
                     'username': True,
                     'password': False,
+                    'id': None,
                     'access_token': None,
                     'refresh_token': None,
                 }
@@ -149,6 +155,7 @@ class Authenticate(Resource):
             response = {
                 'username': False,
                 'password': False,
+                'id': None,
                 'access_token': None,
                 'refresh_token': None,
             }
@@ -159,13 +166,13 @@ class Authenticate(Resource):
 @ns_user.route('/refresh-authentication')
 class RefreshAuthentication(Resource):
     @ns_user.doc(security="jsonWebToken")
-    @jwt_required()
+    @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()
 
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute('SELECT user_id, full_name, email, phone, username FROM userinfos WHERE user_id = %s', (identity,))
+        cursor.execute('SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', (identity,))
         user_data = cursor.fetchone()
         conn.close()
 

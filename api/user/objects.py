@@ -20,14 +20,14 @@ class User:
         try:
             # creating user into database
             cursor.execute('''
-                INSERT INTO userinfos (full_name, email, phone, username, password, creation_datetime)
+                INSERT INTO users (full_name, email, phone, username, password, creation_datetime)
                 VALUES (%s, %s, %s, %s, %s, %s)
             ''', (self.full_name, self.email, self.phone, self.username, password, datetime.now(),))
             conn.commit()
 
             # getting user_id
             cursor.execute('''
-                SELECT user_id FROM userinfos WHERE username = %s
+                SELECT user_id FROM users WHERE username = %s
             ''', (self.username,))
             user_id = cursor.fetchone()[0]
         except:
@@ -37,13 +37,16 @@ class User:
 
         return user_id
     
-    def set_as_free_access(self):
+    def set_free_access(self):
         pass
 
-    def set_as_privileged_access(self):
+    def set_privileged_access(self):
         pass
 
-    def set_as_adm_access(self):
+    def set_adm_access(self):
+        pass
+
+    def set_no_access(self):
         pass
 
     def username_exists(self):
@@ -52,7 +55,7 @@ class User:
         cursor = conn.cursor()
 
         # checking if username already exists
-        cursor.execute(f'SELECT username FROM userinfos WHERE username = %s', (self.username,))
+        cursor.execute(f'SELECT username FROM users WHERE username = %s', (self.username,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -66,7 +69,7 @@ class User:
         cursor = conn.cursor()
 
         # checking if email already exists
-        cursor.execute(f'SELECT email FROM userinfos WHERE email = %s', (self.email,))
+        cursor.execute(f'SELECT email FROM users WHERE email = %s', (self.email,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
