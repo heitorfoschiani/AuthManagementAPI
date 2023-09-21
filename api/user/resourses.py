@@ -118,7 +118,7 @@ class UserAPI(Resource):
 class Authenticate(Resource):
     @ns_user.expect(authenticate_user_model)
     def post(self):
-        # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
+        # The post method in this end-point authanticate the user and returns an access token followed by a refresh token
 
         # extracting username and passowrd of the user
         try:
