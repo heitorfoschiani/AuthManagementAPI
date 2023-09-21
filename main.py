@@ -1,3 +1,7 @@
+# Author: Heitor Foschiani de Souza
+# Email: heitor.foschiani@outlook.com
+# Number: (11) 9 4825-3334
+
 # Importing python files from the project
 from app import create_app
 

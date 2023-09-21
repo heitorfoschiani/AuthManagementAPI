@@ -40,7 +40,14 @@ def create_app():
         conn.close()
 
         if user_data:
-            return User(user_data[0], user_data[1], user_data[2], user_data[3], user_data[4])
+            user = User(
+                user_id = user_data[0], 
+                full_name = user_data[1], 
+                email = user_data[2], 
+                phone = user_data[3], 
+                username= user_data[4]
+            )
+            return user
         
         return None
 

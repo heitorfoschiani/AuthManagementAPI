@@ -1,6 +1,7 @@
 # Importing python files from the project
 from database.dbconnection import connect_to_postgres
 
+
 # Table "users" management
 def table_users_exists():
     # connecting to the database
@@ -23,7 +24,6 @@ def table_users_exists():
         return False
 
     conn.close()
-    
     return True
 
 def create_table_users():

@@ -1,7 +1,3 @@
-# Author: Heitor Foschiani de Souza
-# Email: heitor.foschiani@outlook.com
-# Number: (11) 9 4825-3334
-
 # Importing libraries
 import psycopg2
 from sqlalchemy import create_engine

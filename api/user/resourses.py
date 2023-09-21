@@ -27,7 +27,13 @@ class RegisterUser(Resource):
     @ns_user.expect(register_user_model)
     def post(self):
         # creating user object
-        user = User(user_id=0, full_name=ns_user.payload['full_name'], email=ns_user.payload['email'], phone=ns_user.payload['phone'], username=ns_user.payload['username'])
+        user = User(
+            user_id = 0, 
+            full_name = ns_user.payload['full_name'], 
+            email = ns_user.payload['email'], 
+            phone = ns_user.payload['phone'], 
+            username = ns_user.payload['username']
+        )
 
         # checking if the table "users" exists into postgres
         if not table_users_exists():
@@ -56,10 +62,6 @@ class RegisterUser(Resource):
         refresh_token = create_refresh_token(identity=user)
         response = {
             'id': user.id,
-            'full_name': user.full_name,
-            'email': user.email,
-            'phone': user.phone,
-            'username': user.username,
             'access_token': access_token,
             'refresh_token': refresh_token,
         }
@@ -90,7 +92,13 @@ class UserAPI(Resource):
         finally:
             conn.close()
 
-        user = User(user_data[0], user_data[1], user_data[2], user_data[3], user_data[4])
+        user = User(
+            user_id = user_data[0], 
+            full_name = user_data[1], 
+            email = user_data[2], 
+            phone = user_data[3], 
+            username= user_data[4]
+        )
 
         return user
     
@@ -129,12 +137,16 @@ class Authenticate(Resource):
             bcrypt = Bcrypt(current_app)
             if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns_user.payload['password']):
                 # authenticating user
-                user = User(user_data[0], user_data[1], user_data[2], user_data[3], user_data[4])
+                user = User(
+                    user_id = user_data[0], 
+                    full_name = user_data[1], 
+                    email = user_data[2], 
+                    phone = user_data[3], 
+                    username= user_data[4]
+                )
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
                 response = {
-                    'username': True,
-                    'password': True,
                     'id': user.id,
                     'access_token': access_token,
                     'refresh_token': refresh_token,
@@ -143,8 +155,6 @@ class Authenticate(Resource):
             else:
                 # reporting invalid password
                 response = {
-                    'username': True,
-                    'password': False,
                     'id': None,
                     'access_token': None,
                     'refresh_token': None,
@@ -153,8 +163,6 @@ class Authenticate(Resource):
         else:
             # reporting non-existent user
             response = {
-                'username': False,
-                'password': False,
                 'id': None,
                 'access_token': None,
                 'refresh_token': None,
