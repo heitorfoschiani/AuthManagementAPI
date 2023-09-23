@@ -13,11 +13,11 @@ from api.user.resourses import ns_user
 def create_app():
     app = Flask(__name__)
 
-    app.config["JWT_SECRET_KEY"] = "my-secret-key"
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=30)
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=6)
-    app.config["flask_bcrypt"] = Bcrypt(app)
-    app.config["jwt"] = JWTManager(app)
+    app.config['JWT_SECRET_KEY'] = 'my-secret-key'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=6)
+    app.config['flask_bcrypt'] = Bcrypt(app)
+    app.config['jwt'] = JWTManager(app)
 
     jwt = app.config['jwt']
 

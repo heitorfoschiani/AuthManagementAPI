@@ -73,7 +73,7 @@ class RegisterUser(Resource):
         return current_user
     
 @ns_user.route('/<int:user_id>')
-class UserAPI(Resource):
+class UserManagement(Resource):
     @ns_user.marshal_with(user_model)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
@@ -141,7 +141,7 @@ class Authenticate(Resource):
             conn.close()
 
         if user_data:
-            bcrypt = Bcrypt(current_app)
+            bcrypt = current_app.config['flask_bcryptflask_bcrypt']
             if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns_user.payload['password']):
                 user = User(
                     user_id = user_data[0], 
