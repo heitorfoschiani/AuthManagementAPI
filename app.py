@@ -1,11 +1,9 @@
-# Importing libraries
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
-# Importing python files from the project
 import database.dbconnection as dbconnection
 from api.user.objects import User
 from api import api
@@ -23,19 +21,20 @@ def create_app():
 
     jwt = app.config['jwt']
 
-    # Callback function to get user identity (id) for JWT
     @jwt.user_identity_loader
     def user_identity_lookup(user):
         return user.id
-
-    # Callback function to load user from the database using JWT
+    
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data['sub']
 
         conn = dbconnection.connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute('SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', (identity,))
+        cursor.execute(
+            'SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', 
+            (identity,)
+        )
         user_data = cursor.fetchone()
         conn.close()
 

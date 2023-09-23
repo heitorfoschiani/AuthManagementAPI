@@ -1,7 +1,5 @@
-# Importing libraries
 from flask_restx import fields
 
-# Importing python files from the project
 from api import api
 
 
