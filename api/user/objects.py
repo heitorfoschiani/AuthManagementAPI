@@ -4,8 +4,8 @@ from database.dbconnection import connect_to_postgres
 
 
 class User:
-    def __init__(self, user_id: int, full_name: str, email: str, phone: str, username: str):
-        self.id = user_id
+    def __init__(self, id: int, full_name: str, email: str, phone: str, username: str):
+        self.id = id
         self.full_name = full_name
         self.email = email
         self.phone = phone
@@ -23,7 +23,7 @@ class User:
             conn.commit()
 
             cursor.execute('''
-                SELECT user_id FROM users WHERE username = %s
+                SELECT id FROM users WHERE username = %s
             ''', (self.username,))
             user_id = cursor.fetchone()[0]
         except:

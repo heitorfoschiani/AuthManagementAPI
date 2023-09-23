@@ -28,7 +28,7 @@ class RegisterUser(Resource):
         # The post method of this end-ponis registers a new user on the server
 
         user = User(
-            user_id = 0, 
+            id = 0, 
             full_name = ns_user.payload['full_name'], 
             email = ns_user.payload['email'], 
             phone = ns_user.payload['phone'], 
@@ -84,7 +84,7 @@ class UserManagement(Resource):
             conn = connect_to_postgres()
             cursor = conn.cursor()
             cursor.execute(
-                'SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', 
+                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
                 (user_id,)
             )
             user_data = cursor.fetchone()
@@ -96,7 +96,7 @@ class UserManagement(Resource):
             conn.close()
 
         user = User(
-            user_id = user_data[0], 
+            id = user_data[0], 
             full_name = user_data[1], 
             email = user_data[2], 
             phone = user_data[3], 
@@ -131,7 +131,7 @@ class Authenticate(Resource):
             conn = connect_to_postgres()
             cursor = conn.cursor()
             cursor.execute(
-                'SELECT user_id, full_name, email, phone, username, password FROM users WHERE username = %s', 
+                'SELECT id, full_name, email, phone, username, password FROM users WHERE username = %s', 
                 (ns_user.payload['username'],)
             )
             user_data = cursor.fetchone()
@@ -141,10 +141,10 @@ class Authenticate(Resource):
             conn.close()
 
         if user_data:
-            bcrypt = current_app.config['flask_bcryptflask_bcrypt']
+            bcrypt = current_app.config['flask_bcrypt']
             if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns_user.payload['password']):
                 user = User(
-                    user_id = user_data[0], 
+                    id = user_data[0], 
                     full_name = user_data[1], 
                     email = user_data[2], 
                     phone = user_data[3], 
@@ -153,21 +153,21 @@ class Authenticate(Resource):
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
                 response = {
-                    'id': user.id,
+                    'user_id': user.id,
                     'access_token': access_token,
                     'refresh_token': refresh_token,
                 }
                 status_code = 200
             else:
                 response = {
-                    'id': None,
+                    'user_id': None,
                     'access_token': None,
                     'refresh_token': None,
                 }
                 status_code = 401
         else:
             response = {
-                'id': None,
+                'user_id': None,
                 'access_token': None,
                 'refresh_token': None,
             }
@@ -187,7 +187,7 @@ class RefreshAuthentication(Resource):
         conn = connect_to_postgres()
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', 
+            'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
             (identity,)
         )
         user_data = cursor.fetchone()
@@ -195,13 +195,13 @@ class RefreshAuthentication(Resource):
 
         if not user_data:
             return {
-                'id': None,
+                'user_id': None,
                 'access_token': None,
                 'refresh_token': None,
             }, 404
 
         user = User(
-            user_id = user_data[0], 
+            id = user_data[0], 
             full_name = user_data[1], 
             email = user_data[2], 
             phone = user_data[3], 
@@ -211,7 +211,7 @@ class RefreshAuthentication(Resource):
         refresh_token = create_refresh_token(identity=user)
 
         return {
-            'id': user.id,
+            'user_id': user.id,
             'access_token': access_token, 
             'refresh_token': refresh_token,
         }

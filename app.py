@@ -14,7 +14,7 @@ def create_app():
     app = Flask(__name__)
 
     app.config['JWT_SECRET_KEY'] = 'my-secret-key'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=30)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=6)
     app.config['flask_bcrypt'] = Bcrypt(app)
     app.config['jwt'] = JWTManager(app)
@@ -32,7 +32,7 @@ def create_app():
         conn = dbconnection.connect_to_postgres()
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT user_id, full_name, email, phone, username FROM users WHERE user_id = %s', 
+            'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
             (identity,)
         )
         user_data = cursor.fetchone()
@@ -40,7 +40,7 @@ def create_app():
 
         if user_data:
             user = User(
-                user_id = user_data[0], 
+                id = user_data[0], 
                 full_name = user_data[1], 
                 email = user_data[2], 
                 phone = user_data[3], 

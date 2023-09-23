@@ -29,7 +29,7 @@ def create_table_users():
     try:
         cursor.execute('''
             CREATE TABLE users (
-                user_id SERIAL PRIMARY KEY, 
+                id SERIAL PRIMARY KEY, 
                 full_name VARCHAR(255), 
                 email VARCHAR(255), 
                 phone VARCHAR(20), 
