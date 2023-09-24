@@ -4,7 +4,6 @@ from flask_restx import Resource, Namespace
 from flask_bcrypt import Bcrypt
 
 from database.dbconnection import connect_to_postgres
-from database.dbmanagement.users_table import table_users_exists, create_table_users
 from api.user.objects import User
 from api.user.models import register_user_model, user_model, authenticate_user_model
 
@@ -35,11 +34,6 @@ class RegisterUser(Resource):
             username = ns_user.payload['username']
         )
 
-        if not table_users_exists():
-            create_table = create_table_users()
-            if not create_table:
-                abort(500, 'Error on create table users')
-
         if user.username_exists():
             abort(401, f'{user.username} already exists')
         elif user.email_exists():
@@ -53,14 +47,17 @@ class RegisterUser(Resource):
         if user_id:
             user.id = user_id
         
-        access_token = create_access_token(identity=user)
-        refresh_token = create_refresh_token(identity=user)
+        if user.set_privilege(privilege='basic'):  
+            access_token = create_access_token(identity=user)
+            refresh_token = create_refresh_token(identity=user)
 
-        response = {
-            'id': user.id,
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-        }
+            response = {
+                'id': user.id,
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+            }
+        else:
+            abort(500, 'error on create user')
 
         return response, 200
 

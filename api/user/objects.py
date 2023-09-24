@@ -33,6 +33,40 @@ class User:
 
         return user_id
 
+    def set_privilege(self, privilege: str):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                SELECT id FROM userprivileges
+                WHERE privilege = %s
+            ''', (privilege,))
+            fetch = cursor.fetchone()
+            if not fetch:
+                conn.close()
+                return False
+            privilege_id = int(fetch[0])
+
+            cursor.execute('''
+                INSERT INTO useraccess (user_id, privilege_id, status, creation_datetime, change_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (self.id, privilege_id, 0, datetime.now(), None))
+            conn.commit()
+        except Exception as e:
+            print(f'-----------------{e}-----------------')
+            return False
+        finally:
+            conn.close()
+
+        return True
+
+    def set_manager_privilege(self):
+        pass
+
+    def set_basic_privilege(self):
+        pass
+
     def username_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
