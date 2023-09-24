@@ -32,18 +32,6 @@ class User:
             conn.close()
 
         return user_id
-    
-    def set_free_access(self):
-        pass
-
-    def set_privileged_access(self):
-        pass
-
-    def set_adm_access(self):
-        pass
-
-    def set_no_access(self):
-        pass
 
     def username_exists(self):
         conn = connect_to_postgres()
