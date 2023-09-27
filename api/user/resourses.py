@@ -1,6 +1,6 @@
 from flask import abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, current_user
-from flask_restx import Resource, Namespace
+from flask_restx import Namespace, Resource, reqparse
 from flask_bcrypt import Bcrypt
 
 from database.dbconnection import connect_to_postgres
@@ -20,18 +20,27 @@ ns_user = Namespace(
     authorizations=authorizations
 )
 
+
+user_id_parse = reqparse.RequestParser()
+user_id_parse.add_argument(
+    'user_id', 
+    type=int, 
+    required=False, 
+    help='The user id'
+)
+
 @ns_user.route('/')
 class RegisterUser(Resource):
     @ns_user.expect(register_user_model)
     def post(self):
-        # The post method of this end-ponis registers a new user on the server
+        # The post method of this end-ponis registers a new user into the server
 
         user = User(
             id = 0, 
             full_name = ns_user.payload['full_name'], 
             email = ns_user.payload['email'], 
             phone = ns_user.payload['phone'], 
-            username = ns_user.payload['username']
+            username = ns_user.payload['username'],
         )
 
         if user.username_exists():
@@ -43,39 +52,38 @@ class RegisterUser(Resource):
         hashed_password = bcrypt.generate_password_hash(ns_user.payload['password'])
         password = hashed_password.decode('utf-8')
 
-        user_id = user.register(password)
-        if user_id:
-            user.id = user_id
-        
-        if user.set_privilege(privilege='basic'):  
-            access_token = create_access_token(identity=user)
-            refresh_token = create_refresh_token(identity=user)
+        if not user.register(password):
+            abort(500, 'Error when register user')
 
-            response = {
-                'id': user.id,
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-            }
-        else:
-            abort(500, 'error on create user')
+        access_token = create_access_token(identity=user)
+        refresh_token = create_refresh_token(identity=user)
 
-        return response, 200
+        dict_response = {
+            'id': user.id,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+
+        return dict_response
 
     @ns_user.marshal_with(user_model)
+    @ns_user.expect(user_id_parse)
     @ns_user.doc(security='jsonWebToken')
     @jwt_required()
     def get(self):
         # The get method of this end-point returns the current user by the acess_token send
 
-        return current_user
-    
-@ns_user.route('/<int:user_id>')
-class UserManagement(Resource):
-    @ns_user.marshal_with(user_model)
-    @ns_user.doc(security="jsonWebToken")
-    @jwt_required()
-    def get(self, user_id):
-        # The get method of this end-point returns the current user by user_id infomed
+        args = user_id_parse.parse_args()
+
+        user_id = args['user_id']
+
+        if not user_id or user_id == current_user.id:
+            return current_user
+        
+        privileges_allowed = ['administrator', 'manager']
+
+        if not any(item in privileges_allowed for item in current_user.privilege()):
+            abort(401, 'The user does not have permission to access this informations')
 
         try:
             conn = connect_to_postgres()
@@ -103,9 +111,10 @@ class UserManagement(Resource):
         return user
     
     @ns_user.marshal_with(user_model)
+    @ns_user.expect(user_id_parse)
     @ns_user.doc(security='jsonWebToken')
     @jwt_required()
-    def put(self, user_id):
+    def put(self):
         # The put method of this end-point edit an user info into the server by the user_id informed
 
         pass
@@ -113,7 +122,7 @@ class UserManagement(Resource):
     @ns_user.marshal_with(user_model)
     @ns_user.doc(security='jsonWebToken')
     @jwt_required()
-    def delete(self, user_id):
+    def delete(self):
         # The put method of this end-point delete an user info into the server by the user_id informed
 
         pass
@@ -156,19 +165,9 @@ class Authenticate(Resource):
                 }
                 status_code = 200
             else:
-                response = {
-                    'user_id': None,
-                    'access_token': None,
-                    'refresh_token': None,
-                }
-                status_code = 401
+                abort(401, 'incorrect password')
         else:
-            response = {
-                'user_id': None,
-                'access_token': None,
-                'refresh_token': None,
-            }
-            status_code = 404
+            abort(404, 'non-existing username')
 
         return response, status_code
     

@@ -15,7 +15,7 @@ def create_dbtables():
                 print(f'Error when create table: users')
                 return False
             
-        privileges_list = ['adm', 'manager', 'basic']
+        privileges_list = ['administrator', 'manager', 'basic']
         for privilege in privileges_list:
             add_privilege(privilege)
 

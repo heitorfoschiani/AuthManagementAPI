@@ -27,11 +27,23 @@ class User:
             ''', (self.username,))
             user_id = cursor.fetchone()[0]
         except:
-            return None
+            return False
         finally:
             conn.close()
 
-        return user_id
+        if not user_id:
+            return False
+        
+        self.id = user_id
+
+        if self.id == 1:
+            if not self.set_privilege(privilege='administrator'):
+                return False
+        else:
+            if not self.set_privilege(privilege='basic'):
+                return False
+
+        return True
 
     def set_privilege(self, privilege: str):
         conn = connect_to_postgres()
@@ -49,23 +61,37 @@ class User:
             privilege_id = int(fetch[0])
 
             cursor.execute('''
-                INSERT INTO useraccess (user_id, privilege_id, status, creation_datetime, change_datetime)
+                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, change_datetime)
                 VALUES (%s, %s, %s, %s, %s)
             ''', (self.id, privilege_id, 0, datetime.now(), None))
             conn.commit()
-        except Exception as e:
-            print(f'-----------------{e}-----------------')
+        except:
             return False
         finally:
             conn.close()
 
         return True
+    
+    def privilege(self):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
 
-    def set_manager_privilege(self):
-        pass
+        try:
+            cursor.execute('''
+                SELECT userprivileges.privilege FROM useraccess
+                INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
+                WHERE useraccess.user_id = %s                    
+            ''', (self.id,))
+            fetch = cursor.fetchall()
+            privileges_list = [item[0] for item in fetch]
+            if not fetch:
+                return []
+        except:
+            return []
+        finally:
+            conn.close()
 
-    def set_basic_privilege(self):
-        pass
+        return privileges_list
 
     def username_exists(self):
         conn = connect_to_postgres()

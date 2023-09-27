@@ -31,7 +31,7 @@ def create_table_useraccess():
             CREATE TABLE useraccess (
                 user_id SERIAL, 
                 privilege_id SERIAL, 
-                status SMALLSERIAL, 
+                status_id SMALLSERIAL, 
                 creation_datetime TIMESTAMP, 
                 change_datetime TIMESTAMP
             );
