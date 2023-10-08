@@ -5,19 +5,11 @@ from flask_bcrypt import Bcrypt
 
 from database.dbconnection import connect_to_postgres
 from api.user.objects import User
-from api.user.models import register_user_model, user_model, authenticate_user_model
+from api.user.models import *
 
 
-authorizations = {
-    'jsonWebToken': {
-        'type': 'apiKey',
-        'in': 'header',
-        'name': 'Authorization'
-    }
-}
 ns_user = Namespace(
     'user', 
-    authorizations=authorizations
 )
 
 
@@ -29,8 +21,17 @@ user_id_parse.add_argument(
     help='The user id'
 )
 
+privilege_parse = reqparse.RequestParser()
+privilege_parse.add_argument(
+    'privilege', 
+    type=str, 
+    required=False, 
+    help='The privilege to be defined'
+)
+
+
 @ns_user.route('/')
-class RegisterUser(Resource):
+class UserManagement(Resource):
     @ns_user.expect(register_user_model)
     def post(self):
         # The post method of this end-ponis registers a new user into the server
@@ -53,18 +54,16 @@ class RegisterUser(Resource):
         password = hashed_password.decode('utf-8')
 
         if not user.register(password):
-            abort(500, 'Error when register user')
+            abort(500, 'error when register user')
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
-        dict_response = {
+        return {
             'id': user.id,
             'access_token': access_token,
             'refresh_token': refresh_token,
         }
-
-        return dict_response
 
     @ns_user.marshal_with(user_model)
     @ns_user.expect(user_id_parse)
@@ -80,23 +79,23 @@ class RegisterUser(Resource):
         if not user_id or user_id == current_user.id:
             return current_user
         
+        current_user_privileges = current_user.privileges()
         privileges_allowed = ['administrator', 'manager']
+        if not any(item in privileges_allowed for item in current_user_privileges):
+            abort(401, 'the user does not have permission to access this informations')
 
-        if not any(item in privileges_allowed for item in current_user.privilege()):
-            abort(401, 'The user does not have permission to access this informations')
-
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
         try:
-            conn = connect_to_postgres()
-            cursor = conn.cursor()
             cursor.execute(
                 'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
                 (user_id,)
             )
             user_data = cursor.fetchone()
             if not user_data:
-                abort(404, 'User not fonded')
+                abort(404, 'user not fonded')
         except Exception as e:
-            abort(500, f'Error fetching user: {e}')
+            abort(500, f'error fetching user: {e}')
         finally:
             conn.close()
 
@@ -123,7 +122,7 @@ class RegisterUser(Resource):
     @ns_user.doc(security='jsonWebToken')
     @jwt_required()
     def delete(self):
-        # The put method of this end-point delete an user info into the server by the user_id informed
+        # The delete method of this end-point delete an user info into the server by the user_id informed
 
         pass
 
@@ -133,16 +132,16 @@ class Authenticate(Resource):
     def post(self):
         # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
 
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
         try:
-            conn = connect_to_postgres()
-            cursor = conn.cursor()
             cursor.execute(
                 'SELECT id, full_name, email, phone, username, password FROM users WHERE username = %s', 
                 (ns_user.payload['username'],)
             )
             user_data = cursor.fetchone()
         except Exception as e:
-            abort(500, f'Error fetching user: {e}')
+            abort(500, f'error fetching user: {e}')
         finally:
             conn.close()
 
@@ -158,18 +157,16 @@ class Authenticate(Resource):
                 )
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
-                response = {
-                    'user_id': user.id,
-                    'access_token': access_token,
-                    'refresh_token': refresh_token,
-                }
-                status_code = 200
             else:
                 abort(401, 'incorrect password')
         else:
             abort(404, 'non-existing username')
 
-        return response, status_code
+        return {
+            'user_id': user.id,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
     
 @ns_user.route('/refresh-authentication')
 class RefreshAuthentication(Resource):
@@ -211,3 +208,175 @@ class RefreshAuthentication(Resource):
             'access_token': access_token, 
             'refresh_token': refresh_token,
         }
+
+@ns_user.route('/privilege/<int:user_id>')
+class UserPrivilege(Resource):
+    @ns_user.expect(privilege_model)
+    @ns_user.doc(security='jsonWebToken')
+    @jwt_required()
+    def post(self, user_id):
+        # The post method of this end-point set a privilege to the user
+
+        privilege = ns_user.payload['privilege'].lower()
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                'SELECT privilege FROM userprivileges WHERE privilege = %s', 
+                (privilege,)
+            )
+            if not cursor.fetchone():
+                abort(404, 'non-existing privilege')
+        finally:
+            conn.close()
+
+        current_user_privileges = current_user.privileges()
+        privileges_allowed = ['administrator', 'manager']
+        if not any(item in privileges_allowed for item in current_user_privileges):
+            abort(401, 'the user does not have permission to set a privilege to another user')
+
+        if privilege in privileges_allowed:
+            if not 'administrator' in current_user_privileges:
+                abort(401, 'the user does not have permission to set this privilege to another user')
+
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
+                (user_id,)
+            )
+            user_data = cursor.fetchone()
+            if not user_data:
+                abort(404, 'user not fonded')
+        finally:
+            conn.close()
+
+        user = User(
+            id = user_data[0], 
+            full_name = user_data[1], 
+            email = user_data[2], 
+            phone = user_data[3], 
+            username= user_data[4]
+        )
+        
+        if privilege in user.privileges():
+            abort(401, 'user already has this privilege')
+
+        if not user.set_privilege(privilege):
+            abort(500, 'error when setting privilege')
+
+        return {
+            'id': user.id,
+            'privileges': user.privileges(),
+        }
+    
+    @ns_user.expect(privilege_model)
+    @ns_user.doc(security='jsonWebToken')
+    @jwt_required()
+    def delete(self, user_id):
+        # The delete method of this end-point remove a privilege of the user
+
+        privilege = ns_user.payload['privilege'].lower()
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                'SELECT privilege FROM userprivileges WHERE privilege = %s', 
+                (privilege,)
+            )
+            if not cursor.fetchone():
+                abort(404, 'non-existing privilege')
+        finally:
+            conn.close()
+
+        current_user_privileges = current_user.privileges()
+        privileges_allowed = ['administrator', 'manager']
+        if not any(item in privileges_allowed for item in current_user_privileges):
+            abort(401, 'the user does not have permission to delete a privilege of an user')
+
+        if privilege == 'manager':
+            if not 'administrator' in current_user_privileges:
+                abort(401, 'Only an administrator can remove a manager privilege')
+
+        if privilege == 'administrator':
+            if not 'administrator' in current_user_privileges:
+                abort(401, 'Only an administrator can remove the privilege of another')
+
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
+                (user_id,)
+            )
+            user_data = cursor.fetchone()
+            if not user_data:
+                abort(404, 'user not fonded')
+        finally:
+            conn.close()
+
+        user = User(
+            id = user_data[0], 
+            full_name = user_data[1], 
+            email = user_data[2], 
+            phone = user_data[3], 
+            username= user_data[4]
+        )
+        
+        if privilege not in user.privileges():
+            abort(401, 'user do not have this privilege')
+
+        if not user.delete_privilege(privilege):
+            abort(500, 'error when remove privilege')
+
+        return {
+            'id': user.id,
+            'privileges': user.privileges(),
+        }
+                
+
+    @ns_user.doc(security='jsonWebToken')
+    @jwt_required()
+    def get(self, user_id):
+        # The get method of this end-point return the privilege of the user
+
+        current_user_privileges = current_user.privileges()
+        if user_id == current_user.id:
+            return {
+                'user_id': user_id,
+                'privileges': current_user_privileges,
+            }
+        
+        privileges_allowed = ['administrator', 'manager']
+        if not any(item in privileges_allowed for item in current_user_privileges):
+            abort(401, 'the user does not have permission to access this informations')
+
+        try:
+            conn = connect_to_postgres()
+            cursor = conn.cursor()
+            cursor.execute(
+                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
+                (user_id,)
+            )
+            user_data = cursor.fetchone()
+            if not user_data:
+                abort(404, 'user not fonded')
+        except Exception as e:
+            abort(500, f'error fetching user: {e}')
+        finally:
+            conn.close()
+
+        user = User(
+            id = user_data[0], 
+            full_name = user_data[1], 
+            email = user_data[2], 
+            phone = user_data[3], 
+            username= user_data[4]
+        )
+
+        return {
+            'id': user.id,
+            'privileges': user.privileges(),
+        }
+

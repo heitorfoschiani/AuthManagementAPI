@@ -72,7 +72,35 @@ class User:
 
         return True
     
-    def privilege(self):
+    def delete_privilege(self, privilege: str):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute('''
+                SELECT id FROM userprivileges
+                WHERE privilege = %s
+            ''', (privilege,))
+            fetch = cursor.fetchone()
+            if not fetch:
+                conn.close()
+                return False
+            privilege_id = int(fetch[0])
+
+            cursor.execute('''
+                UPDATE useraccess
+                    SET status_id = 1, change_datetime = %s
+                WHERE privilege_id = %s AND user_id = %s AND status_id = 0
+            ''', (datetime.now(), privilege_id, self.id))
+            conn.commit()
+        except:
+            return False
+        finally:
+            conn.close()
+
+        return True
+    
+    def privileges(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
 
@@ -80,7 +108,7 @@ class User:
             cursor.execute('''
                 SELECT userprivileges.privilege FROM useraccess
                 INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
-                WHERE useraccess.user_id = %s                    
+                WHERE useraccess.user_id = %s AND useraccess.status_id = 0
             ''', (self.id,))
             fetch = cursor.fetchall()
             privileges_list = [item[0] for item in fetch]

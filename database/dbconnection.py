@@ -9,7 +9,7 @@ dbhost = lines[0].strip()
 dbport = lines[1].strip()
 dbuser = lines[2].strip()
 dbpassword = lines[3].strip()
-dbname = 'LoginManagement'
+dbname = 'AuthenticationManagement'
 
 
 def connect_to_postgres(connection_type='connection', host=dbhost, port=dbport, dbname=dbname, user=dbuser, password=dbpassword):

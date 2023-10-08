@@ -23,3 +23,7 @@ authenticate_user_model = api.model('AuthenticateUser', {
     'username': fields.String,
     'password': fields.String,
 })
+
+privilege_model = api.model('Privilege', {
+    'privilege': fields.String,
+})

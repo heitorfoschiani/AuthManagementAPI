@@ -15,9 +15,11 @@ def table_userprivileges_exists():
     ''')
     if not cursor.fetchone()[0]:
         conn.close()
+
         return False
 
     conn.close()
+    
     return True
 
 def create_table_userprivileges():
@@ -70,5 +72,5 @@ def add_privilege(privilege: str):
         return privilege_id
     
     conn.close()
-    
+
     return 0
