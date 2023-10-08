@@ -29,11 +29,12 @@ def create_table_useraccess():
     try:
         cursor.execute('''
             CREATE TABLE useraccess (
-                user_id SERIAL, 
-                privilege_id SERIAL, 
+                user_id INTEGER NOT NULL REFERENCES users(id), 
+                privilege_id INTEGER NOT NULL REFERENCES userprivileges(id), 
                 status_id SMALLSERIAL, 
                 creation_datetime TIMESTAMP, 
-                change_datetime TIMESTAMP
+                change_datetime TIMESTAMP, 
+                PRIMARY KEY(user_id, privilege_id)
             );
         ''')
         conn.commit()
