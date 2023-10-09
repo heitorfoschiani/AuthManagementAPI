@@ -159,7 +159,7 @@ class User:
 
         return True
     
-def get_user(id: int):
+def get_user(user_id: int):
     conn = connect_to_postgres()
     cursor = conn.cursor()
     cursor.execute('''
@@ -179,7 +179,7 @@ def get_user(id: int):
         usernames.status_id = 1 AND 
         users.id = %s
     ''', 
-    (id,))
+    (user_id,))
     user_data = cursor.fetchone()
     conn.close()
 

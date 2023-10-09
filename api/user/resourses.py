@@ -217,7 +217,7 @@ class UserPrivilege(Resource):
             if not 'administrator' in current_user_privileges:
                 abort(401, 'the user does not have permission to set this privilege to another user')
 
-        user = get_user(user)
+        user = get_user(user_id)
         if not user:
             abort(404, 'user not fonded')
         
@@ -264,7 +264,7 @@ class UserPrivilege(Resource):
             if not 'administrator' in current_user_privileges:
                 abort(401, 'Only an administrator can remove the privilege of another')
 
-        user = get_user(user)
+        user = get_user(user_id)
         if not user:
             abort(404, 'user not fonded')
         
@@ -296,7 +296,7 @@ class UserPrivilege(Resource):
         if not any(item in privileges_allowed for item in current_user_privileges):
             abort(401, 'the user does not have permission to access this informations')
 
-        user = get_user(user)
+        user = get_user(user_id)
         if not user:
             abort(404, 'user not fonded')
 
