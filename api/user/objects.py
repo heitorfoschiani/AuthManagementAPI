@@ -11,21 +11,37 @@ class User:
         self.phone = phone
         self.username = username
 
-    def register(self, password: str):
+    def register(self, password_hash: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
 
         try:
             cursor.execute('''
-                INSERT INTO users (full_name, email, phone, username, password, creation_datetime)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (self.full_name, self.email, self.phone, self.username, password, datetime.now(),))
-            conn.commit()
+                INSERT INTO users (full_name, creation_datetime)
+                VALUES (%s, %s) RETURNING id
+            ''', (self.full_name, datetime.now()))
+            user_id = cursor.fetchone()[0]
 
             cursor.execute('''
-                SELECT id FROM users WHERE username = %s
-            ''', (self.username,))
-            user_id = cursor.fetchone()[0]
+                INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (user_id, self.email, 1, datetime.now(), None))
+
+            cursor.execute('''
+                INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (user_id, self.phone, 1, datetime.now(), None))
+
+            cursor.execute('''
+                INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (user_id, self.username, 1, datetime.now(), None))
+
+            cursor.execute('''
+                INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', (user_id, password_hash, 1, datetime.now(), None))
+            conn.commit()
         except:
             return False
         finally:
@@ -61,7 +77,7 @@ class User:
             privilege_id = int(fetch[0])
 
             cursor.execute('''
-                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, change_datetime)
+                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
             ''', (self.id, privilege_id, 0, datetime.now(), None))
             conn.commit()
@@ -89,7 +105,7 @@ class User:
 
             cursor.execute('''
                 UPDATE useraccess
-                    SET status_id = 1, change_datetime = %s
+                    SET status_id = 1, update_datetime = %s
                 WHERE privilege_id = %s AND user_id = %s AND status_id = 0
             ''', (datetime.now(), privilege_id, self.id))
             conn.commit()
@@ -124,7 +140,7 @@ class User:
     def username_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute(f'SELECT username FROM users WHERE username = %s', (self.username,))
+        cursor.execute('SELECT username FROM usernames WHERE username = %s AND status_id = 1', (self.username,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -135,10 +151,46 @@ class User:
     def email_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute(f'SELECT email FROM users WHERE email = %s', (self.email,))
+        cursor.execute('SELECT email FROM useremails WHERE email = %s AND status_id = 1', (self.email,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
             return False
 
         return True
+    
+def get_user(id: int):
+    conn = connect_to_postgres()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT 
+            users.id,
+            users.full_name,
+            useremails.email,
+            userphones.phone,
+            usernames.username
+        FROM users
+        LEFT JOIN useremails ON useremails.user_id = users.id
+        LEFT JOIN userphones ON userphones.user_id = users.id
+        LEFT JOIN usernames ON usernames.user_id = users.id
+        WHERE 
+        useremails.status_id = 1 AND
+        userphones.status_id = 1 AND
+        usernames.status_id = 1 AND 
+        users.id = %s
+    ''', 
+    (id,))
+    user_data = cursor.fetchone()
+    conn.close()
+
+    if user_data:
+        user = User(
+            id = user_data[0], 
+            full_name = user_data[1], 
+            email = user_data[2], 
+            phone = user_data[3], 
+            username = user_data[4]
+        )
+        return user
+    
+    return None

@@ -1,8 +1,8 @@
 from database.dbconnection import connect_to_postgres
 
 
-def table_userprivileges_exists():
-    # This function check if the table "userprivileges" already exists into the database
+def table_fkstatus_exists():
+    # This function check if the table "fkstatus" already exists into the database
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
@@ -10,29 +10,26 @@ def table_userprivileges_exists():
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
-            AND table_name = 'userprivileges'
+            AND table_name = 'fkstatus'
         );
     ''')
     if not cursor.fetchone()[0]:
         conn.close()
-
         return False
 
     conn.close()
-    
     return True
 
-def create_table_userprivileges():
-    # This function creates the "userprivileges" table into the database
+def create_table_fkstatus():
+    # This function creates the "fkstatus" table into the database
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-
     try:
         cursor.execute('''
-            CREATE TABLE userprivileges (
+            CREATE TABLE fkstatus (
                 id SERIAL PRIMARY KEY, 
-                privilege VARCHAR(255) 
+                status VARCHAR(255)
             );
         ''')
         conn.commit()
@@ -43,33 +40,34 @@ def create_table_userprivileges():
     finally:
         conn.close()
 
-def add_privilege(privilege: str):
-    # This function add a new privilege into the "userprivileges" table
+def add_status(status: str):
+    # This function add a new privilege into the "fkstatus" table
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-
     cursor.execute('''
-        SELECT privilege FROM userprivileges
-        WHERE privilege = %s
-    ''', (privilege,))
+        SELECT status FROM fkstatus
+        WHERE status = %s
+    ''', (status,))
 
     if not cursor.fetchone():
         cursor.execute('''
-            INSERT INTO userprivileges (privilege)
+            INSERT INTO fkstatus (status)
             VALUES (%s);
-        ''', (privilege,))
+        ''', (status,))
         conn.commit()
 
         cursor.execute('''
-            SELECT id FROM userprivileges
-            WHERE privilege = %s
-        ''', (privilege,))
+            SELECT id FROM fkstatus
+            WHERE status = %s
+        ''', (status,))
         fetch = cursor.fetchone()
 
-        privilege_id = fetch[0]
+        status_id = fetch[0]
 
-        return privilege_id
+        conn.close()
+
+        return status_id
     
     conn.close()
 

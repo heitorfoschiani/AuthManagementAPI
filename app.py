@@ -7,6 +7,7 @@ from datetime import timedelta
 import database.dbconnection as dbconnection
 from api.user.objects import User
 from api import api
+from api.user.objects import get_user
 from api.user.resourses import ns_user
 
 
@@ -28,27 +29,9 @@ def create_app():
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data['sub']
-
-        conn = dbconnection.connect_to_postgres()
-        cursor = conn.cursor()
-        cursor.execute(
-            'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-            (identity,)
-        )
-        user_data = cursor.fetchone()
-        conn.close()
-
-        if user_data:
-            user = User(
-                id = user_data[0], 
-                full_name = user_data[1], 
-                email = user_data[2], 
-                phone = user_data[3], 
-                username= user_data[4]
-            )
-            return user
         
-        return None
+        user = get_user(identity)
+        return user
 
     CORS(app)
 

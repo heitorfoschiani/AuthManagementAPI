@@ -1,8 +1,8 @@
 from database.dbconnection import connect_to_postgres
 
 
-def table_users_exists():
-    # This function check if the table "users" already exists into the database
+def table_useremails_exists():
+    # This function check if the table "useremails" already exists into the database
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
@@ -10,7 +10,7 @@ def table_users_exists():
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
-            AND table_name = 'users'
+            AND table_name = 'useremails'
         );
     ''')
     if not cursor.fetchone()[0]:
@@ -20,22 +20,20 @@ def table_users_exists():
     conn.close()
     return True
 
-def create_table_users():
-    # This function creates the "users" table into the database
+def create_table_useremails():
+    # This function creates the "useremails" table into the database
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-
     try:
         cursor.execute('''
-            CREATE TABLE users (
-                id SERIAL PRIMARY KEY, 
-                full_name VARCHAR(255), 
+            CREATE TABLE useremails (
+                user_id INTEGER NOT NULL REFERENCES users(id), 
                 email VARCHAR(255), 
-                phone VARCHAR(20), 
-                username VARCHAR(255), 
-                password TEXT,
-                creation_datetime TIMESTAMP
+                status_id INTEGER NOT NULL REFERENCES fkstatus(id), 
+                creation_datetime TIMESTAMP, 
+                update_datetime TIMESTAMP, 
+                PRIMARY KEY(user_id, status_id)
             );
         ''')
         conn.commit()

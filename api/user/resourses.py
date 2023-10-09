@@ -4,7 +4,7 @@ from flask_restx import Namespace, Resource, reqparse
 from flask_bcrypt import Bcrypt
 
 from database.dbconnection import connect_to_postgres
-from api.user.objects import User
+from api.user.objects import User, get_user
 from api.user.models import *
 
 
@@ -84,28 +84,7 @@ class UserManagement(Resource):
         if not any(item in privileges_allowed for item in current_user_privileges):
             abort(401, 'the user does not have permission to access this informations')
 
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-                (user_id,)
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                abort(404, 'user not fonded')
-        except Exception as e:
-            abort(500, f'error fetching user: {e}')
-        finally:
-            conn.close()
-
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username= user_data[4]
-        )
+        user = get_user(user_id)
 
         return user
     
@@ -135,10 +114,23 @@ class Authenticate(Resource):
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
-            cursor.execute(
-                'SELECT id, full_name, email, phone, username, password FROM users WHERE username = %s', 
-                (ns_user.payload['username'],)
-            )
+            cursor.execute('''
+                SELECT 
+                    users.id,
+                    users.full_name,
+                    useremails.email,
+                    userphones.phone,
+                    usernames.username
+                FROM users
+                LEFT JOIN useremails ON useremails.user_id = users.id
+                LEFT JOIN userphones ON userphones.user_id = users.id
+                LEFT JOIN usernames ON usernames.user_id = users.id
+                WHERE 
+                useremails.status_id = 1 AND
+                userphones.status_id = 1 AND
+                usernames.status_id = 1 AND 
+                usernames.username = %s
+            ''',(ns_user.payload['username'],))
             user_data = cursor.fetchone()
         except Exception as e:
             abort(500, f'error fetching user: {e}')
@@ -177,29 +169,15 @@ class RefreshAuthentication(Resource):
 
         identity = get_jwt_identity()
 
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-        cursor.execute(
-            'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-            (identity,)
-        )
-        user_data = cursor.fetchone()
-        conn.close()
+        user = get_user(identity)
 
-        if not user_data:
+        if not user:
             return {
                 'user_id': None,
                 'access_token': None,
                 'refresh_token': None,
             }, 404
 
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username= user_data[4]
-        )
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
@@ -239,26 +217,9 @@ class UserPrivilege(Resource):
             if not 'administrator' in current_user_privileges:
                 abort(401, 'the user does not have permission to set this privilege to another user')
 
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-                (user_id,)
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                abort(404, 'user not fonded')
-        finally:
-            conn.close()
-
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username= user_data[4]
-        )
+        user = get_user(user)
+        if not user:
+            abort(404, 'user not fonded')
         
         if privilege in user.privileges():
             abort(401, 'user already has this privilege')
@@ -303,26 +264,9 @@ class UserPrivilege(Resource):
             if not 'administrator' in current_user_privileges:
                 abort(401, 'Only an administrator can remove the privilege of another')
 
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-                (user_id,)
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                abort(404, 'user not fonded')
-        finally:
-            conn.close()
-
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username= user_data[4]
-        )
+        user = get_user(user)
+        if not user:
+            abort(404, 'user not fonded')
         
         if privilege not in user.privileges():
             abort(401, 'user do not have this privilege')
@@ -352,28 +296,9 @@ class UserPrivilege(Resource):
         if not any(item in privileges_allowed for item in current_user_privileges):
             abort(401, 'the user does not have permission to access this informations')
 
-        try:
-            conn = connect_to_postgres()
-            cursor = conn.cursor()
-            cursor.execute(
-                'SELECT id, full_name, email, phone, username FROM users WHERE id = %s', 
-                (user_id,)
-            )
-            user_data = cursor.fetchone()
-            if not user_data:
-                abort(404, 'user not fonded')
-        except Exception as e:
-            abort(500, f'error fetching user: {e}')
-        finally:
-            conn.close()
-
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username= user_data[4]
-        )
+        user = get_user(user)
+        if not user:
+            abort(404, 'user not fonded')
 
         return {
             'id': user.id,
