@@ -19,6 +19,13 @@ register_user_model = api.model('RegisterUser', {
     'password': fields.String,
 })
 
+edit_user_model = api.model('RegisterUser', {
+    'email': fields.String,
+    'phone': fields.String,
+    'username': fields.String,
+    'password': fields.String,
+})
+
 authenticate_user_model = api.model('AuthenticateUser', {
     'username': fields.String,
     'password': fields.String,

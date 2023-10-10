@@ -89,11 +89,11 @@ class UserManagement(Resource):
         return user
     
     @ns_user.marshal_with(user_model)
-    @ns_user.expect(user_id_parse)
+    @ns_user.expect(edit_user_model)
     @ns_user.doc(security='jsonWebToken')
     @jwt_required()
     def put(self):
-        # The put method of this end-point edit an user info into the server by the user_id informed
+        # The put method of this end-point edit an user informations into the server by the user_id informed
 
         pass
 
@@ -120,11 +120,13 @@ class Authenticate(Resource):
                     users.full_name,
                     useremails.email,
                     userphones.phone,
-                    usernames.username
+                    usernames.username,
+                    userpasswords.password
                 FROM users
                 LEFT JOIN useremails ON useremails.user_id = users.id
                 LEFT JOIN userphones ON userphones.user_id = users.id
                 LEFT JOIN usernames ON usernames.user_id = users.id
+                LEFT JOIN userpasswords ON userpasswords.user_id = users.id
                 WHERE 
                 useremails.status_id = 1 AND
                 userphones.status_id = 1 AND
@@ -258,11 +260,14 @@ class UserPrivilege(Resource):
 
         if privilege == 'manager':
             if not 'administrator' in current_user_privileges:
-                abort(401, 'Only an administrator can remove a manager privilege')
+                abort(401, 'only an administrator can remove a manager privilege')
 
         if privilege == 'administrator':
             if not 'administrator' in current_user_privileges:
-                abort(401, 'Only an administrator can remove the privilege of another')
+                abort(401, 'only an administrator can remove the privilege of another')
+            
+            if user_id == current_user.id:
+                abort(401, 'an administrator can not remove the privilege of himself')
 
         user = get_user(user_id)
         if not user:

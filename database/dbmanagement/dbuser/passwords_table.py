@@ -30,7 +30,7 @@ def create_table_userpasswords():
             CREATE TABLE userpasswords (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 password TEXT, 
-                status_id SMALLSERIAL, 
+                status_id INTEGER NOT NULL REFERENCES fkstatus(id), 
                 creation_datetime TIMESTAMP, 
                 update_datetime TIMESTAMP, 
                 PRIMARY KEY(user_id, status_id)

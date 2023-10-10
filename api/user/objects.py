@@ -79,7 +79,7 @@ class User:
             cursor.execute('''
                 INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (self.id, privilege_id, 0, datetime.now(), None))
+            ''', (self.id, privilege_id, 1, datetime.now(), None))
             conn.commit()
         except:
             return False
@@ -105,8 +105,8 @@ class User:
 
             cursor.execute('''
                 UPDATE useraccess
-                    SET status_id = 1, update_datetime = %s
-                WHERE privilege_id = %s AND user_id = %s AND status_id = 0
+                    SET status_id = 2, update_datetime = %s
+                WHERE privilege_id = %s AND user_id = %s AND status_id = 1
             ''', (datetime.now(), privilege_id, self.id))
             conn.commit()
         except:
@@ -124,7 +124,7 @@ class User:
             cursor.execute('''
                 SELECT userprivileges.privilege FROM useraccess
                 INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
-                WHERE useraccess.user_id = %s AND useraccess.status_id = 0
+                WHERE useraccess.user_id = %s AND useraccess.status_id = 1
             ''', (self.id,))
             fetch = cursor.fetchall()
             privileges_list = [item[0] for item in fetch]

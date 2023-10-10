@@ -30,7 +30,7 @@ def create_table_usernames():
             CREATE TABLE usernames (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 username VARCHAR(255), 
-                status_id SMALLSERIAL, 
+                status_id INTEGER NOT NULL REFERENCES fkstatus(id), 
                 creation_datetime TIMESTAMP, 
                 update_datetime TIMESTAMP, 
                 PRIMARY KEY(user_id, status_id)

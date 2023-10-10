@@ -30,10 +30,10 @@ def create_table_useraccess():
             CREATE TABLE useraccess (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 privilege_id INTEGER NOT NULL REFERENCES userprivileges(id), 
-                status_id SMALLSERIAL, 
+                status_id INTEGER NOT NULL REFERENCES fkstatus(id), 
                 creation_datetime TIMESTAMP, 
                 update_datetime TIMESTAMP, 
-                PRIMARY KEY(user_id, privilege_id)
+                PRIMARY KEY(user_id, privilege_id, status_id)
             );
         ''')
         conn.commit()
