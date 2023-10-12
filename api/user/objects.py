@@ -125,8 +125,39 @@ class User:
         return True
     
     def inactivate(self):
-        pass
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
 
+        try:
+            cursor.execute("""
+                SELECT id FROM userprivileges
+                WHERE privilege = 'inactive'
+            """)
+            fetch = cursor.fetchone()
+            if not fetch:
+                conn.close()
+                return False
+            privilege_id = int(fetch[0])
+
+            cursor.execute("""
+                UPDATE useraccess
+                    SET status_id = 2, update_datetime = %s
+                WHERE status_id = 1 AND user_id = %s
+            """, (datetime.now(), self.id))
+
+            cursor.execute("""
+                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (self.id, privilege_id, 1, datetime.now(), None))
+
+            conn.commit()
+        except:
+            return False
+        finally:
+            conn.close()
+
+        return True
+    
     def set_privilege(self, privilege: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()

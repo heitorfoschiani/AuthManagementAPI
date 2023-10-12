@@ -139,13 +139,33 @@ class UserManagement(Resource):
 
         return user
 
-    @ns_user.marshal_with(user_model)
+    @ns_user.expect(user_id_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def delete(self):
         # The delete method of this end-point delete an user informationinto the server by the user_id informed
 
-        pass
+        args = user_id_parse.parse_args()
+
+        user_id = args["user_id"]
+
+        current_user_privileges = current_user.privileges()
+        privileges_allowed = ["administrator", "manager"]
+        if not any(item in privileges_allowed for item in current_user_privileges) and user_id != current_user.id:
+            abort(401, "the user does not have permission to set a privilege to another user")
+
+        user = get_user(user_id)
+
+        if "inactive" in user.privileges():
+            abort(401, "user is already inactive")
+
+        if not user.inactivate():
+            abort(500, "error when inactivate user")
+
+        return {
+            "id": user.id,
+            "privileges": user.privileges(),
+        }
 
 @ns_user.route("/authenticate")
 class Authenticate(Resource):
@@ -182,6 +202,11 @@ class Authenticate(Resource):
             conn.close()
 
         if user_data:
+            user_id = user_data[0]
+            user = get_user(user_id)
+            if 'inactive' in user.privileges():
+                abort(404, "non-existing active username")
+
             bcrypt = current_app.config["flask_bcrypt"]
             if bcrypt.check_password_hash(user_data[5].encode("utf-8"), ns_user.payload["password"]):
                 user = User(
@@ -196,7 +221,7 @@ class Authenticate(Resource):
             else:
                 abort(401, "incorrect password")
         else:
-            abort(404, "non-existing username")
+            abort(404, "non-existing active username")
 
         return {
             "user_id": user.id,
