@@ -1,10 +1,10 @@
 from database.dbmanagement.dbgeneral.status_table import *
 from database.dbmanagement.dbuser.users_table import *
 from database.dbmanagement.dbuser.usernames_table import *
-from database.dbmanagement.dbuser.emails_table import *
-from database.dbmanagement.dbuser.phones_table import *
-from database.dbmanagement.dbuser.passwords_table import *
-from database.dbmanagement.dbuser.privileges_table import *
+from database.dbmanagement.dbuser.useremails_table import *
+from database.dbmanagement.dbuser.userphones_table import *
+from database.dbmanagement.dbuser.userpasswords_table import *
+from database.dbmanagement.dbuser.userprivileges_table import *
 from database.dbmanagement.dbuser.useraccess_table import *
 
 
