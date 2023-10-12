@@ -14,9 +14,9 @@ user_model = api.model("User", {
 register_user_model = api.model("RegisterUser", {
     "full_name": fields.String(description="The user's full name", required=True),
     "email": fields.String(description="The user's main email", required=True),
-    "phone": fields.String(required=True),
-    "username": fields.String(required=True),
-    "password": fields.String(required=True),
+    "phone": fields.String(description="The user's phone number email", required=True),
+    "username": fields.String(description="The user's username into the server", required=True),
+    "password": fields.String(description="The user's password to access the server", required=True),
 })
 
 edit_user_model = api.model("RegisterUser", {

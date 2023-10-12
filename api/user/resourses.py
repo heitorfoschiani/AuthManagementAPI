@@ -1,7 +1,6 @@
 from flask import abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, current_user
 from flask_restx import Namespace, Resource, reqparse
-from flask_bcrypt import Bcrypt
 
 from database.dbconnection import connect_to_postgres
 from api.user.objects import User, get_user
@@ -49,7 +48,7 @@ class UserManagement(Resource):
         elif user.email_exists():
             abort(401, f"{user.email} already exists")
 
-        bcrypt = Bcrypt(current_app)
+        bcrypt = current_app.config["flask_bcrypt"]
         hashed_password = bcrypt.generate_password_hash(ns_user.payload["password"])
         password = hashed_password.decode("utf-8")
 
@@ -95,7 +94,7 @@ class UserManagement(Resource):
     def put(self):
         # The put method of this end-point edit an user informations into the server by the user_id informed
 
-        user_id = ns_user.payload["user_id"]
+        user_id = ns_user.payload["id"]
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -105,6 +104,38 @@ class UserManagement(Resource):
         user = get_user(user_id)
         if not user:
             abort(401, "user not founded")
+
+        update_information = ns_user.payload
+        if "email" in update_information:
+            if update_information["email"] == user.email:
+                update_information.pop("email")
+
+        update_information = ns_user.payload
+        if "phone" in update_information:
+            if update_information["phone"] == user.phone:
+                update_information.pop("phone")
+
+        update_information = ns_user.payload
+        if "username" in update_information:
+            if update_information["username"] == user.username:
+                update_information.pop("username")
+
+        if "password" in update_information:
+            bcrypt = current_app.config["flask_bcrypt"]
+            update_information["password"] = bcrypt.generate_password_hash(update_information["password"])
+            conn = connect_to_postgres()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT password FROM userpasswords WHERE status_id = 1 AND user_id = %s",
+                (user.id,)
+            )
+            user_current_password = cursor.fetchone()[0]
+            conn.close()
+            if bcrypt.check_password_hash(user_current_password.encode("utf-8"), update_information["password"]):
+                update_information.pop("password")
+
+        if not user.update(update_information):
+            abort(500, "error when update user informations")
 
         return user
 
