@@ -6,13 +6,13 @@ def table_userpasswords_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'userpasswords'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,7 +26,7 @@ def create_table_userpasswords():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE userpasswords (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 password TEXT, 
@@ -35,7 +35,7 @@ def create_table_userpasswords():
                 update_datetime TIMESTAMP, 
                 PRIMARY KEY(user_id, status_id)
             );
-        ''')
+        """)
         conn.commit()
         
         return True

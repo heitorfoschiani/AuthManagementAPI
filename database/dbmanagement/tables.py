@@ -12,53 +12,53 @@ def create_dbtables():
     try:
         if not table_fkstatus_exists():
             if not create_table_fkstatus():
-                print(f'Error when create table: fkstatus')
+                print(f"Error when create table: fkstatus")
                 return False
             
-        status_list = ['valid', 'invalid']
+        status_list = ["valid", "invalid"]
         for status in status_list:
             add_status(status)
 
         if not table_users_exists():
             if not create_table_users():
-                print(f'Error when create table: users')
+                print(f"Error when create table: users")
                 return False
             
         if not table_usernames_exists():
             if not create_table_usernames():
-                print(f'Error when create table: usernames')
+                print(f"Error when create table: usernames")
                 return False
             
         if not table_useremails_exists():
             if not create_table_useremails():
-                print(f'Error when create table: emails')
+                print(f"Error when create table: emails")
                 return False
             
         if not table_userphones_exists():
             if not create_table_userphones():
-                print(f'Error when create table: phones')
+                print(f"Error when create table: phones")
                 return False
             
         if not table_userpasswords_exists():
             if not create_table_userpasswords():
-                print(f'Error when create table: passwords')
+                print(f"Error when create table: passwords")
                 return False
 
         if not table_userprivileges_exists():
             if not create_table_userprivileges():
-                print(f'Error when create table: userprivileges')
+                print(f"Error when create table: userprivileges")
                 return False
             
-        privileges_list = ['administrator', 'manager', 'basic']
+        privileges_list = ["administrator", "manager", "basic"]
         for privilege in privileges_list:
             add_privilege(privilege)
 
         if not table_useraccess_exists():
             if not create_table_useraccess():
-                print(f'Error when create table: useraccess')
+                print(f"Error when create table: useraccess")
                 return False
     except Exception as e:
-        print(f'Error when create table: {e}')
+        print(f"Error when create table: {e}")
         return False
 
     return True

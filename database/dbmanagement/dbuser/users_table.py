@@ -6,13 +6,13 @@ def table_users_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'users'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,13 +26,13 @@ def create_table_users():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE users (
                 id SERIAL PRIMARY KEY, 
                 full_name VARCHAR(255), 
                 creation_datetime TIMESTAMP
             );
-        ''')
+        """)
         conn.commit()
         
         return True

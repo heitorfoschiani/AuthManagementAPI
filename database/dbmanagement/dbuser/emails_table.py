@@ -6,13 +6,13 @@ def table_useremails_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'useremails'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,7 +26,7 @@ def create_table_useremails():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE useremails (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 email VARCHAR(255), 
@@ -35,7 +35,7 @@ def create_table_useremails():
                 update_datetime TIMESTAMP, 
                 PRIMARY KEY(user_id, status_id)
             );
-        ''')
+        """)
         conn.commit()
         
         return True

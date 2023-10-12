@@ -9,28 +9,28 @@ from api.user.models import *
 
 
 ns_user = Namespace(
-    'user', 
+    "user", 
 )
 
 
 user_id_parse = reqparse.RequestParser()
 user_id_parse.add_argument(
-    'user_id', 
+    "user_id", 
     type=int, 
     required=False, 
-    help='The user id'
+    help="The user id"
 )
 
 privilege_parse = reqparse.RequestParser()
 privilege_parse.add_argument(
-    'privilege', 
+    "privilege", 
     type=str, 
     required=False, 
-    help='The privilege to be defined'
+    help="The privilege to be defined"
 )
 
 
-@ns_user.route('/')
+@ns_user.route("/")
 class UserManagement(Resource):
     @ns_user.expect(register_user_model)
     def post(self):
@@ -38,51 +38,51 @@ class UserManagement(Resource):
 
         user = User(
             id = 0, 
-            full_name = ns_user.payload['full_name'], 
-            email = ns_user.payload['email'], 
-            phone = ns_user.payload['phone'], 
-            username = ns_user.payload['username'],
+            full_name = ns_user.payload["full_name"], 
+            email = ns_user.payload["email"], 
+            phone = ns_user.payload["phone"], 
+            username = ns_user.payload["username"],
         )
 
         if user.username_exists():
-            abort(401, f'{user.username} already exists')
+            abort(401, f"{user.username} already exists")
         elif user.email_exists():
-            abort(401, f'{user.email} already exists')
+            abort(401, f"{user.email} already exists")
 
         bcrypt = Bcrypt(current_app)
-        hashed_password = bcrypt.generate_password_hash(ns_user.payload['password'])
-        password = hashed_password.decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(ns_user.payload["password"])
+        password = hashed_password.decode("utf-8")
 
         if not user.register(password):
-            abort(500, 'error when register user')
+            abort(500, "error when register user")
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
         return {
-            'id': user.id,
-            'access_token': access_token,
-            'refresh_token': refresh_token,
+            "id": user.id,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
         }
 
     @ns_user.marshal_with(user_model)
     @ns_user.expect(user_id_parse)
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self):
         # The get method of this end-point returns the current user by the acess_token send
 
         args = user_id_parse.parse_args()
 
-        user_id = args['user_id']
+        user_id = args["user_id"]
 
         if not user_id or user_id == current_user.id:
             return current_user
         
         current_user_privileges = current_user.privileges()
-        privileges_allowed = ['administrator', 'manager']
+        privileges_allowed = ["administrator", "manager"]
         if not any(item in privileges_allowed for item in current_user_privileges):
-            abort(401, 'the user does not have permission to access this informations')
+            abort(401, "the user does not have permission to access this informations")
 
         user = get_user(user_id)
 
@@ -90,22 +90,33 @@ class UserManagement(Resource):
     
     @ns_user.marshal_with(user_model)
     @ns_user.expect(edit_user_model)
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def put(self):
         # The put method of this end-point edit an user informations into the server by the user_id informed
 
-        pass
+        user_id = ns_user.payload["user_id"]
+
+        current_user_privileges = current_user.privileges()
+        privileges_allowed = ["administrator", "manager"]
+        if not any(item in privileges_allowed for item in current_user_privileges) and user_id != current_user.id:
+            abort(401, "the user does not have permission to set a privilege to another user")
+
+        user = get_user(user_id)
+        if not user:
+            abort(401, "user not founded")
+
+        return user
 
     @ns_user.marshal_with(user_model)
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def delete(self):
-        # The delete method of this end-point delete an user info into the server by the user_id informed
+        # The delete method of this end-point delete an user informationinto the server by the user_id informed
 
         pass
 
-@ns_user.route('/authenticate')
+@ns_user.route("/authenticate")
 class Authenticate(Resource):
     @ns_user.expect(authenticate_user_model)
     def post(self):
@@ -114,7 +125,7 @@ class Authenticate(Resource):
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
-            cursor.execute('''
+            cursor.execute("""
                 SELECT 
                     users.id,
                     users.full_name,
@@ -132,16 +143,16 @@ class Authenticate(Resource):
                 userphones.status_id = 1 AND
                 usernames.status_id = 1 AND 
                 usernames.username = %s
-            ''',(ns_user.payload['username'],))
+            """,(ns_user.payload["username"],))
             user_data = cursor.fetchone()
         except Exception as e:
-            abort(500, f'error fetching user: {e}')
+            abort(500, f"error fetching user: {e}")
         finally:
             conn.close()
 
         if user_data:
-            bcrypt = current_app.config['flask_bcrypt']
-            if bcrypt.check_password_hash(user_data[5].encode('utf-8'), ns_user.payload['password']):
+            bcrypt = current_app.config["flask_bcrypt"]
+            if bcrypt.check_password_hash(user_data[5].encode("utf-8"), ns_user.payload["password"]):
                 user = User(
                     id = user_data[0], 
                     full_name = user_data[1], 
@@ -152,17 +163,17 @@ class Authenticate(Resource):
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
             else:
-                abort(401, 'incorrect password')
+                abort(401, "incorrect password")
         else:
-            abort(404, 'non-existing username')
+            abort(404, "non-existing username")
 
         return {
-            'user_id': user.id,
-            'access_token': access_token,
-            'refresh_token': refresh_token,
+            "user_id": user.id,
+            "access_token": access_token,
+            "refresh_token": refresh_token,
         }
     
-@ns_user.route('/refresh-authentication')
+@ns_user.route("/refresh-authentication")
 class RefreshAuthentication(Resource):
     @ns_user.doc(security="jsonWebToken")
     @jwt_required(refresh=True)
@@ -175,117 +186,117 @@ class RefreshAuthentication(Resource):
 
         if not user:
             return {
-                'user_id': None,
-                'access_token': None,
-                'refresh_token': None,
+                "user_id": None,
+                "access_token": None,
+                "refresh_token": None,
             }, 404
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
         return {
-            'user_id': user.id,
-            'access_token': access_token, 
-            'refresh_token': refresh_token,
+            "user_id": user.id,
+            "access_token": access_token, 
+            "refresh_token": refresh_token,
         }
 
-@ns_user.route('/privilege/<int:user_id>')
+@ns_user.route("/privilege/<int:user_id>")
 class UserPrivilege(Resource):
     @ns_user.expect(privilege_model)
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def post(self, user_id):
         # The post method of this end-point set a privilege to the user
 
-        privilege = ns_user.payload['privilege'].lower()
+        privilege = ns_user.payload["privilege"].lower()
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
             cursor.execute(
-                'SELECT privilege FROM userprivileges WHERE privilege = %s', 
+                "SELECT privilege FROM userprivileges WHERE privilege = %s", 
                 (privilege,)
             )
             if not cursor.fetchone():
-                abort(404, 'non-existing privilege')
+                abort(404, "non-existing privilege")
         finally:
             conn.close()
 
         current_user_privileges = current_user.privileges()
-        privileges_allowed = ['administrator', 'manager']
+        privileges_allowed = ["administrator", "manager"]
         if not any(item in privileges_allowed for item in current_user_privileges):
-            abort(401, 'the user does not have permission to set a privilege to another user')
+            abort(401, "the user does not have permission to set a privilege to another user")
 
         if privilege in privileges_allowed:
-            if not 'administrator' in current_user_privileges:
-                abort(401, 'the user does not have permission to set this privilege to another user')
+            if not "administrator" in current_user_privileges:
+                abort(401, "the user does not have permission to set this privilege to another user")
 
         user = get_user(user_id)
         if not user:
-            abort(404, 'user not fonded')
+            abort(404, "user not founded")
         
         if privilege in user.privileges():
-            abort(401, 'user already has this privilege')
+            abort(401, "user already has this privilege")
 
         if not user.set_privilege(privilege):
-            abort(500, 'error when setting privilege')
+            abort(500, "error when setting privilege")
 
         return {
-            'id': user.id,
-            'privileges': user.privileges(),
+            "id": user.id,
+            "privileges": user.privileges(),
         }
     
     @ns_user.expect(privilege_model)
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def delete(self, user_id):
         # The delete method of this end-point remove a privilege of the user
 
-        privilege = ns_user.payload['privilege'].lower()
+        privilege = ns_user.payload["privilege"].lower()
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
             cursor.execute(
-                'SELECT privilege FROM userprivileges WHERE privilege = %s', 
+                "SELECT privilege FROM userprivileges WHERE privilege = %s", 
                 (privilege,)
             )
             if not cursor.fetchone():
-                abort(404, 'non-existing privilege')
+                abort(404, "non-existing privilege")
         finally:
             conn.close()
 
         current_user_privileges = current_user.privileges()
-        privileges_allowed = ['administrator', 'manager']
+        privileges_allowed = ["administrator", "manager"]
         if not any(item in privileges_allowed for item in current_user_privileges):
-            abort(401, 'the user does not have permission to delete a privilege of an user')
+            abort(401, "the user does not have permission to delete a privilege of an user")
 
-        if privilege == 'manager':
-            if not 'administrator' in current_user_privileges:
-                abort(401, 'only an administrator can remove a manager privilege')
+        if privilege == "manager":
+            if not "administrator" in current_user_privileges:
+                abort(401, "only an administrator can remove a manager privilege")
 
-        if privilege == 'administrator':
-            if not 'administrator' in current_user_privileges:
-                abort(401, 'only an administrator can remove the privilege of another')
+        if privilege == "administrator":
+            if not "administrator" in current_user_privileges:
+                abort(401, "only an administrator can remove the privilege of another")
             
             if user_id == current_user.id:
-                abort(401, 'an administrator can not remove the privilege of himself')
+                abort(401, "an administrator can not remove the privilege of himself")
 
         user = get_user(user_id)
         if not user:
-            abort(404, 'user not fonded')
+            abort(404, "user not founded")
         
         if privilege not in user.privileges():
-            abort(401, 'user do not have this privilege')
+            abort(401, "user do not have this privilege")
 
         if not user.delete_privilege(privilege):
-            abort(500, 'error when remove privilege')
+            abort(500, "error when remove privilege")
 
         return {
-            'id': user.id,
-            'privileges': user.privileges(),
+            "id": user.id,
+            "privileges": user.privileges(),
         }
                 
 
-    @ns_user.doc(security='jsonWebToken')
+    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self, user_id):
         # The get method of this end-point return the privilege of the user
@@ -293,20 +304,20 @@ class UserPrivilege(Resource):
         current_user_privileges = current_user.privileges()
         if user_id == current_user.id:
             return {
-                'user_id': user_id,
-                'privileges': current_user_privileges,
+                "user_id": user_id,
+                "privileges": current_user_privileges,
             }
         
-        privileges_allowed = ['administrator', 'manager']
+        privileges_allowed = ["administrator", "manager"]
         if not any(item in privileges_allowed for item in current_user_privileges):
-            abort(401, 'the user does not have permission to access this informations')
+            abort(401, "the user does not have permission to access this informations")
 
         user = get_user(user_id)
         if not user:
-            abort(404, 'user not fonded')
+            abort(404, "user not founded")
 
         return {
-            'id': user.id,
-            'privileges': user.privileges(),
+            "id": user.id,
+            "privileges": user.privileges(),
         }
 

@@ -6,13 +6,13 @@ def table_fkstatus_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'fkstatus'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,12 +26,12 @@ def create_table_fkstatus():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE fkstatus (
                 id SERIAL PRIMARY KEY, 
                 status VARCHAR(255)
             );
-        ''')
+        """)
         conn.commit()
         
         return True
@@ -45,22 +45,22 @@ def add_status(status: str):
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT status FROM fkstatus
         WHERE status = %s
-    ''', (status,))
+    """, (status,))
 
     if not cursor.fetchone():
-        cursor.execute('''
+        cursor.execute("""
             INSERT INTO fkstatus (status)
             VALUES (%s);
-        ''', (status,))
+        """, (status,))
         conn.commit()
 
-        cursor.execute('''
+        cursor.execute("""
             SELECT id FROM fkstatus
             WHERE status = %s
-        ''', (status,))
+        """, (status,))
         fetch = cursor.fetchone()
 
         status_id = fetch[0]

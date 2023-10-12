@@ -14,13 +14,13 @@ from api.user.resourses import ns_user
 def create_app():
     app = Flask(__name__)
 
-    app.config['JWT_SECRET_KEY'] = 'my-secret-key'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(hours=6)
-    app.config['flask_bcrypt'] = Bcrypt(app)
-    app.config['jwt'] = JWTManager(app)
+    app.config["JWT_SECRET_KEY"] = "my-secret-key"
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=6)
+    app.config["flask_bcrypt"] = Bcrypt(app)
+    app.config["jwt"] = JWTManager(app)
 
-    jwt = app.config['jwt']
+    jwt = app.config["jwt"]
 
     @jwt.user_identity_loader
     def user_identity_lookup(user):
@@ -28,7 +28,7 @@ def create_app():
     
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
-        identity = jwt_data['sub']
+        identity = jwt_data["sub"]
         
         user = get_user(identity)
         return user

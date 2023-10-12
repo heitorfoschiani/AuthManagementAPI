@@ -16,31 +16,31 @@ class User:
         cursor = conn.cursor()
 
         try:
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO users (full_name, creation_datetime)
                 VALUES (%s, %s) RETURNING id
-            ''', (self.full_name, datetime.now()))
+            """, (self.full_name, datetime.now()))
             user_id = cursor.fetchone()[0]
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (user_id, self.email, 1, datetime.now(), None))
+            """, (user_id, self.email, 1, datetime.now(), None))
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (user_id, self.phone, 1, datetime.now(), None))
+            """, (user_id, self.phone, 1, datetime.now(), None))
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (user_id, self.username, 1, datetime.now(), None))
+            """, (user_id, self.username, 1, datetime.now(), None))
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (user_id, password_hash, 1, datetime.now(), None))
+            """, (user_id, password_hash, 1, datetime.now(), None))
             conn.commit()
         except:
             return False
@@ -53,33 +53,51 @@ class User:
         self.id = user_id
 
         if self.id == 1:
-            if not self.set_privilege(privilege='administrator'):
+            if not self.set_privilege(privilege="administrator"):
                 return False
         else:
-            if not self.set_privilege(privilege='basic'):
+            if not self.set_privilege(privilege="basic"):
                 return False
 
         return True
+    
+    def update(self, user_information: dict):
+        conn = connect_to_postgres()
+        cursor = conn.close()
+
+        if user_information["username"] != self.username:
+            cursor.execute("""
+                UPDATE usernames
+                    SET status_id = 2, update_datetime = %s
+                WHERE status_id <> 2 AND user_id = %s
+            """, (datetime.now(), self.id))
+
+            cursor.execute("""
+                INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (self.id, user_information[ "username"], 1, datetime.now(), None))
+
+            self.username = user_information["username"]
 
     def set_privilege(self, privilege: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
 
         try:
-            cursor.execute('''
+            cursor.execute("""
                 SELECT id FROM userprivileges
                 WHERE privilege = %s
-            ''', (privilege,))
+            """, (privilege,))
             fetch = cursor.fetchone()
             if not fetch:
                 conn.close()
                 return False
             privilege_id = int(fetch[0])
 
-            cursor.execute('''
+            cursor.execute("""
                 INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
                 VALUES (%s, %s, %s, %s, %s)
-            ''', (self.id, privilege_id, 1, datetime.now(), None))
+            """, (self.id, privilege_id, 1, datetime.now(), None))
             conn.commit()
         except:
             return False
@@ -93,21 +111,21 @@ class User:
         cursor = conn.cursor()
 
         try:
-            cursor.execute('''
+            cursor.execute("""
                 SELECT id FROM userprivileges
                 WHERE privilege = %s
-            ''', (privilege,))
+            """, (privilege,))
             fetch = cursor.fetchone()
             if not fetch:
                 conn.close()
                 return False
             privilege_id = int(fetch[0])
 
-            cursor.execute('''
+            cursor.execute("""
                 UPDATE useraccess
                     SET status_id = 2, update_datetime = %s
                 WHERE privilege_id = %s AND user_id = %s AND status_id = 1
-            ''', (datetime.now(), privilege_id, self.id))
+            """, (datetime.now(), privilege_id, self.id))
             conn.commit()
         except:
             return False
@@ -121,11 +139,11 @@ class User:
         cursor = conn.cursor()
 
         try:
-            cursor.execute('''
+            cursor.execute("""
                 SELECT userprivileges.privilege FROM useraccess
                 INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
                 WHERE useraccess.user_id = %s AND useraccess.status_id = 1
-            ''', (self.id,))
+            """, (self.id,))
             fetch = cursor.fetchall()
             privileges_list = [item[0] for item in fetch]
             if not fetch:
@@ -140,7 +158,7 @@ class User:
     def username_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute('SELECT username FROM usernames WHERE username = %s AND status_id = 1', (self.username,))
+        cursor.execute("SELECT username FROM usernames WHERE username = %s AND status_id = 1", (self.username,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -151,7 +169,7 @@ class User:
     def email_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute('SELECT email FROM useremails WHERE email = %s AND status_id = 1', (self.email,))
+        cursor.execute("SELECT email FROM useremails WHERE email = %s AND status_id = 1", (self.email,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -162,7 +180,7 @@ class User:
 def get_user(user_id: int):
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT 
             users.id,
             users.full_name,
@@ -178,7 +196,7 @@ def get_user(user_id: int):
         userphones.status_id = 1 AND
         usernames.status_id = 1 AND 
         users.id = %s
-    ''', 
+    """, 
     (user_id,))
     user_data = cursor.fetchone()
     conn.close()

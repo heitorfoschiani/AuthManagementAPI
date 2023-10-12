@@ -6,13 +6,13 @@ def table_userprivileges_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'userprivileges'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,12 +26,12 @@ def create_table_userprivileges():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE userprivileges (
                 id SERIAL PRIMARY KEY, 
                 privilege VARCHAR(255) 
             );
-        ''')
+        """)
         conn.commit()
         
         return True
@@ -45,22 +45,22 @@ def add_privilege(privilege: str):
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT privilege FROM userprivileges
         WHERE privilege = %s
-    ''', (privilege,))
+    """, (privilege,))
 
     if not cursor.fetchone():
-        cursor.execute('''
+        cursor.execute("""
             INSERT INTO userprivileges (privilege)
             VALUES (%s);
-        ''', (privilege,))
+        """, (privilege,))
         conn.commit()
 
-        cursor.execute('''
+        cursor.execute("""
             SELECT id FROM userprivileges
             WHERE privilege = %s
-        ''', (privilege,))
+        """, (privilege,))
         fetch = cursor.fetchone()
 
         privilege_id = fetch[0]

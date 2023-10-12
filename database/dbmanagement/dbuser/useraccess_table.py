@@ -6,13 +6,13 @@ def table_useraccess_exists():
     
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public'
             AND table_name = 'useraccess'
         );
-    ''')
+    """)
     if not cursor.fetchone()[0]:
         conn.close()
         return False
@@ -26,7 +26,7 @@ def create_table_useraccess():
     conn = connect_to_postgres()
     cursor = conn.cursor()
     try:
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE useraccess (
                 user_id INTEGER NOT NULL REFERENCES users(id), 
                 privilege_id INTEGER NOT NULL REFERENCES userprivileges(id), 
@@ -35,7 +35,7 @@ def create_table_useraccess():
                 update_datetime TIMESTAMP, 
                 PRIMARY KEY(user_id, privilege_id, status_id)
             );
-        ''')
+        """)
         conn.commit()
         
         return True
