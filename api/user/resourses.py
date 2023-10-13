@@ -37,15 +37,17 @@ class UserManagement(Resource):
 
         user = User(
             id = 0, 
-            full_name = ns_user.payload["full_name"], 
+            full_name = ns_user.payload["full_name"].lower(), 
             email = ns_user.payload["email"], 
             phone = ns_user.payload["phone"], 
             username = ns_user.payload["username"],
         )
 
+        if user.full_name_exists():
+            abort(401, f"{user.full_name} already exists")
         if user.username_exists():
             abort(401, f"{user.username} already exists")
-        elif user.email_exists():
+        if user.email_exists():
             abort(401, f"{user.email} already exists")
 
         bcrypt = current_app.config["flask_bcrypt"]
@@ -106,16 +108,15 @@ class UserManagement(Resource):
             abort(401, "user not founded")
 
         update_information = ns_user.payload
+
         if "email" in update_information:
             if update_information["email"] == user.email:
                 update_information.pop("email")
 
-        update_information = ns_user.payload
         if "phone" in update_information:
             if update_information["phone"] == user.phone:
                 update_information.pop("phone")
 
-        update_information = ns_user.payload
         if "username" in update_information:
             if update_information["username"] == user.username:
                 update_information.pop("username")
@@ -276,6 +277,9 @@ class UserPrivilege(Resource):
                 abort(404, "non-existing privilege")
         finally:
             conn.close()
+
+        if privilege == 'inactive':
+            abort(401, 'aneble to inactivate an user using this end-point.')
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]

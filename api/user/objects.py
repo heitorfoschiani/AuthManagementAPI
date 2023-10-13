@@ -65,62 +65,66 @@ class User:
         conn = connect_to_postgres()
         cursor = conn.cursor()
 
-        if "email" in update_information:
-            cursor.execute("""
-                UPDATE useremails
-                    SET status_id = 2, update_datetime = %s
-                WHERE status_id <> 2 AND user_id = %s
-            """, (datetime.now(), self.id))
+        try:
+            if "email" in update_information:
+                cursor.execute("""
+                    UPDATE useremails
+                        SET status_id = 2, update_datetime = %s
+                    WHERE status_id <> 2 AND user_id = %s
+                """, (datetime.now(), self.id))
 
-            cursor.execute("""
-                INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (self.id, update_information["email"], 1, datetime.now(), None))
+                cursor.execute("""
+                    INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (self.id, update_information["email"], 1, datetime.now(), None))
 
-            self.email = update_information["email"]
+                self.email = update_information["email"]
 
-        if "phone" in update_information:
-            cursor.execute("""
-                UPDATE userphones
-                    SET status_id = 2, update_datetime = %s
-                WHERE status_id <> 2 AND user_id = %s
-            """, (datetime.now(), self.id))
+            if "phone" in update_information:
+                cursor.execute("""
+                    UPDATE userphones
+                        SET status_id = 2, update_datetime = %s
+                    WHERE status_id <> 2 AND user_id = %s
+                """, (datetime.now(), self.id))
 
-            cursor.execute("""
-                INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (self.id, update_information["phone"], 1, datetime.now(), None))
+                cursor.execute("""
+                    INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (self.id, update_information["phone"], 1, datetime.now(), None))
 
-            self.phone = update_information["phone"]
+                self.phone = update_information["phone"]
 
-        if "username" in update_information:
-            cursor.execute("""
-                UPDATE usernames
-                    SET status_id = 2, update_datetime = %s
-                WHERE status_id <> 2 AND user_id = %s
-            """, (datetime.now(), self.id))
+            if "username" in update_information:
+                cursor.execute("""
+                    UPDATE usernames
+                        SET status_id = 2, update_datetime = %s
+                    WHERE status_id <> 2 AND user_id = %s
+                """, (datetime.now(), self.id))
 
-            cursor.execute("""
-                INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (self.id, update_information["username"], 1, datetime.now(), None))
+                cursor.execute("""
+                    INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (self.id, update_information["username"], 1, datetime.now(), None))
 
-            self.username = update_information["username"]
+                self.username = update_information["username"]
 
-        if "password" in update_information:
-            cursor.execute("""
-                UPDATE userpasswords
-                    SET status_id = 2, update_datetime = %s
-                WHERE status_id <> 2 AND user_id = %s
-            """, (datetime.now(), self.id))
+            if "password" in update_information:
+                cursor.execute("""
+                    UPDATE userpasswords
+                        SET status_id = 2, update_datetime = %s
+                    WHERE status_id <> 2 AND user_id = %s
+                """, (datetime.now(), self.id))
 
-            cursor.execute("""
-                INSERT INTO passwords (user_id, password, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (self.id, update_information["password"], 1, datetime.now(), None))
+                cursor.execute("""
+                    INSERT INTO passwords (user_id, password, status_id, creation_datetime, update_datetime)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (self.id, update_information["password"], 1, datetime.now(), None))
 
-        conn.commit()
-        conn.close()
+            conn.commit()
+        except:
+            return False
+        finally:
+            conn.close()
 
         return True
     
@@ -157,7 +161,7 @@ class User:
             conn.close()
 
         return True
-    
+
     def set_privilege(self, privilege: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
@@ -233,11 +237,22 @@ class User:
             conn.close()
 
         return privileges_list
+    
+    def full_name_exists(self):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        cursor.execute("SELECT full_name FROM users WHERE status_id = 1 AND full_name = %s", (self.full_name,))
+        fetch = cursor.fetchone()
+        conn.close()
+        if not fetch:
+            return False
+
+        return True
 
     def username_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("SELECT username FROM usernames WHERE username = %s AND status_id = 1", (self.username,))
+        cursor.execute("SELECT username FROM usernames WHERE status_id = 1 AND username = %s", (self.username,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -248,7 +263,7 @@ class User:
     def email_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("SELECT email FROM useremails WHERE email = %s AND status_id = 1", (self.email,))
+        cursor.execute("SELECT email FROM useremails WHERE status_id = 1 AND email = %s", (self.email,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
