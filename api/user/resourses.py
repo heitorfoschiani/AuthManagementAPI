@@ -79,10 +79,9 @@ class UserManagement(Resource):
     def get(self):
         # The get method of this end-point returns the current user by the acess_token send
 
-        args = user_id_parse.parse_args()
+        user_id = user_id_parse.parse_args()["user_id"]
+        username = username_parse.parse_args()["username"]
 
-        user_id = args["user_id"]
-        username = args["username"]
         if not user_id and not username:
             user_id = current_user.id 
             user = current_user
@@ -175,9 +174,8 @@ class UserManagement(Resource):
     def delete(self):
         # The delete method of this end-point delete an user informationinto the server by the user_id informed
 
-        args = user_id_parse.parse_args()
+        user_id = user_id_parse.parse_args()["user_id"]
 
-        user_id = args["user_id"]
         if not user_id:
             user_id = current_user.id
             user = current_user
