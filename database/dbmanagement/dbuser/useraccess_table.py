@@ -32,8 +32,7 @@ def create_table_useraccess():
                 privilege_id INTEGER NOT NULL REFERENCES userprivileges(id), 
                 status_id INTEGER NOT NULL REFERENCES fkstatus(id), 
                 creation_datetime TIMESTAMP, 
-                update_datetime TIMESTAMP, 
-                PRIMARY KEY(user_id, privilege_id, status_id)
+                update_datetime TIMESTAMP
             );
         """)
         conn.commit()

@@ -33,7 +33,7 @@ def create_app():
         def user_lookup_callback(_jwt_header, jwt_data):
             identity = jwt_data["sub"]
             
-            user = get_user(identity)
+            user = get_user(identity) 
             return user
 
         CORS(application)

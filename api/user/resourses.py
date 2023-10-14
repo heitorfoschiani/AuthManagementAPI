@@ -43,8 +43,6 @@ class UserManagement(Resource):
             username = ns_user.payload["username"],
         )
 
-        if user.full_name_exists():
-            abort(401, f"{user.full_name} already exists")
         if user.username_exists():
             abort(401, f"{user.username} already exists")
         if user.email_exists():
@@ -77,13 +75,17 @@ class UserManagement(Resource):
 
         user_id = args["user_id"]
 
-        if not user_id or user_id == current_user.id:
-            return current_user
+        user_id = user_id if user_id else current_user.id
         
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges):
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present and user_id != current_user.id:
             abort(401, "the user does not have permission to access this informations")
+
+        privileges_not_allowed = ["inactive"]
+        if any(privilege in privileges_not_allowed for privilege in current_user_privileges):
+            abort(404, 'the user is inactive')
 
         user = get_user(user_id)
 
@@ -100,8 +102,11 @@ class UserManagement(Resource):
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges) and user_id != current_user.id:
-            abort(401, "the user does not have permission to set a privilege to another user")
+        privileges_not_allowed = ["inactive"]
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        not_allowed_privileges_present = any(privilege in privileges_not_allowed for privilege in current_user_privileges)
+        if (not allowed_privileges_present and user_id != current_user.id) or not_allowed_privileges_present:
+            abort(401, "the user does not have permission to change an information to another user")
 
         user = get_user(user_id)
         if not user:
@@ -150,9 +155,12 @@ class UserManagement(Resource):
 
         user_id = args["user_id"]
 
+        user_id = user_id if user_id else current_user.id
+
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges) and user_id != current_user.id:
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present and user_id != current_user.id:
             abort(401, "the user does not have permission to set a privilege to another user")
 
         user = get_user(user_id)
@@ -278,12 +286,13 @@ class UserPrivilege(Resource):
         finally:
             conn.close()
 
-        if privilege == 'inactive':
-            abort(401, 'aneble to inactivate an user using this end-point.')
+        if privilege == "inactive":
+            abort(401, "aneble to inactivate an user using this end-point")
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges):
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present:
             abort(401, "the user does not have permission to set a privilege to another user")
 
         if privilege in privileges_allowed:
@@ -325,8 +334,13 @@ class UserPrivilege(Resource):
             conn.close()
 
         current_user_privileges = current_user.privileges()
+
+        if privilege == "basic":
+            abort(401, "aneble to inactivate an user using this end-point")
+
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges):
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present:
             abort(401, "the user does not have permission to delete a privilege of an user")
 
         if privilege == "manager":
@@ -369,7 +383,8 @@ class UserPrivilege(Resource):
             }
         
         privileges_allowed = ["administrator", "manager"]
-        if not any(item in privileges_allowed for item in current_user_privileges):
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present:
             abort(401, "the user does not have permission to access this informations")
 
         user = get_user(user_id)

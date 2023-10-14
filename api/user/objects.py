@@ -241,7 +241,7 @@ class User:
     def full_name_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("SELECT full_name FROM users WHERE status_id = 1 AND full_name = %s", (self.full_name,))
+        cursor.execute("SELECT full_name FROM users WHERE full_name = %s", (self.full_name,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
