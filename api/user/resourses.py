@@ -20,6 +20,14 @@ user_id_parse.add_argument(
     help="The user id"
 )
 
+username_parse = reqparse.RequestParser()
+username_parse.add_argument(
+    "username", 
+    type=str, 
+    required=False, 
+    help="The username"
+)
+
 privilege_parse = reqparse.RequestParser()
 privilege_parse.add_argument(
     "privilege", 
@@ -65,7 +73,7 @@ class UserManagement(Resource):
         }
 
     @ns_user.marshal_with(user_model)
-    @ns_user.expect(user_id_parse)
+    @ns_user.expect(user_id_parse, username_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self):
@@ -74,8 +82,23 @@ class UserManagement(Resource):
         args = user_id_parse.parse_args()
 
         user_id = args["user_id"]
+        username = args["username"]
+        if not user_id and not username:
+            user_id = current_user.id 
+            user = current_user
+        elif user_id:
+            user_information = {
+                "user_id": user_id
+            }
+            user = get_user(user_information)
+        else:
+            user_information = {
+                "username": username
+            }
+            user = get_user(user_information)
 
-        user_id = user_id if user_id else current_user.id
+        if user_id and username:
+            abort(400, "can only provide either user_id or username, not both")
         
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -85,9 +108,7 @@ class UserManagement(Resource):
 
         privileges_not_allowed = ["inactive"]
         if any(privilege in privileges_not_allowed for privilege in current_user_privileges):
-            abort(404, 'the user is inactive')
-
-        user = get_user(user_id)
+            abort(404, "the user is inactive")
 
         return user
     
@@ -106,9 +127,12 @@ class UserManagement(Resource):
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         not_allowed_privileges_present = any(privilege in privileges_not_allowed for privilege in current_user_privileges)
         if (not allowed_privileges_present and user_id != current_user.id) or not_allowed_privileges_present:
-            abort(401, "the user does not have permission to change an information to another user")
+            abort(401, "the user does not have permission to change an information of another user")
 
-        user = get_user(user_id)
+        user_information = {
+            "user_id": user_id
+        }
+        user = get_user(user_information)
         if not user:
             abort(401, "user not founded")
 
@@ -154,16 +178,20 @@ class UserManagement(Resource):
         args = user_id_parse.parse_args()
 
         user_id = args["user_id"]
-
-        user_id = user_id if user_id else current_user.id
+        if not user_id:
+            user_id = current_user.id
+            user = current_user
+        else:
+            user_information = {
+                "user_id": user_id
+            }
+            user = get_user(user_information)
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         if not allowed_privileges_present and user_id != current_user.id:
             abort(401, "the user does not have permission to set a privilege to another user")
-
-        user = get_user(user_id)
 
         if "inactive" in user.privileges():
             abort(401, "user is already inactive")
@@ -182,49 +210,26 @@ class Authenticate(Resource):
     def post(self):
         # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
 
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-                SELECT 
-                    users.id,
-                    users.full_name,
-                    useremails.email,
-                    userphones.phone,
-                    usernames.username,
-                    userpasswords.password
-                FROM users
-                LEFT JOIN useremails ON useremails.user_id = users.id
-                LEFT JOIN userphones ON userphones.user_id = users.id
-                LEFT JOIN usernames ON usernames.user_id = users.id
-                LEFT JOIN userpasswords ON userpasswords.user_id = users.id
-                WHERE 
-                useremails.status_id = 1 AND
-                userphones.status_id = 1 AND
-                usernames.status_id = 1 AND 
-                usernames.username = %s
-            """,(ns_user.payload["username"],))
-            user_data = cursor.fetchone()
-        except Exception as e:
-            abort(500, f"error fetching user: {e}")
-        finally:
-            conn.close()
+        user_information = {
+            "username": ns_user.payload["username"],
+        }
+        user = get_user(user_information)
 
-        if user_data:
-            user_id = user_data[0]
-            user = get_user(user_id)
+        if user:
             if 'inactive' in user.privileges():
                 abort(404, "non-existing active username")
+            
+            conn = connect_to_postgres()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT password FROM userpasswords WHERE user_id = %s",
+                (user.id,)
+            )
+            user_password = cursor.fetchone()[0]
+            conn.close()
 
             bcrypt = current_app.config["flask_bcrypt"]
-            if bcrypt.check_password_hash(user_data[5].encode("utf-8"), ns_user.payload["password"]):
-                user = User(
-                    id = user_data[0], 
-                    full_name = user_data[1], 
-                    email = user_data[2], 
-                    phone = user_data[3], 
-                    username= user_data[4]
-                )
+            if bcrypt.check_password_hash(user_password.encode("utf-8"), ns_user.payload["password"]):
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
             else:
@@ -247,7 +252,10 @@ class RefreshAuthentication(Resource):
 
         identity = get_jwt_identity()
 
-        user = get_user(identity)
+        user_information = {
+            "user_id": identity
+        }
+        user = get_user(user_information)
 
         if not user:
             return {
@@ -299,7 +307,10 @@ class UserPrivilege(Resource):
             if not "administrator" in current_user_privileges:
                 abort(401, "the user does not have permission to set this privilege to another user")
 
-        user = get_user(user_id)
+        user_information = {
+            "user_id": user_id
+        }
+        user = get_user(user_information)
         if not user:
             abort(404, "user not founded")
         
@@ -354,7 +365,10 @@ class UserPrivilege(Resource):
             if user_id == current_user.id:
                 abort(401, "an administrator can not remove the privilege of himself")
 
-        user = get_user(user_id)
+        user_information = {
+            "user_id": user_id
+        }
+        user = get_user(user_information)
         if not user:
             abort(404, "user not founded")
         
@@ -387,7 +401,10 @@ class UserPrivilege(Resource):
         if not allowed_privileges_present:
             abort(401, "the user does not have permission to access this informations")
 
-        user = get_user(user_id)
+        user_information = {
+            "user_id": user_id
+        }
+        user = get_user(user_information)
         if not user:
             abort(404, "user not founded")
 

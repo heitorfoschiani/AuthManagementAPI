@@ -271,28 +271,50 @@ class User:
 
         return True
     
-def get_user(user_id: int):
+def get_user(user_information: dict):
+
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT 
-            users.id,
-            users.full_name,
-            useremails.email,
-            userphones.phone,
-            usernames.username
-        FROM users
-        LEFT JOIN useremails ON useremails.user_id = users.id
-        LEFT JOIN userphones ON userphones.user_id = users.id
-        LEFT JOIN usernames ON usernames.user_id = users.id
-        WHERE 
-        useremails.status_id = 1 AND
-        userphones.status_id = 1 AND
-        usernames.status_id = 1 AND 
-        users.id = %s
-    """, 
-    (user_id,))
-    user_data = cursor.fetchone()
+    if "user_id" in user_information:
+        cursor.execute("""
+            SELECT 
+                users.id,
+                users.full_name,
+                useremails.email,
+                userphones.phone,
+                usernames.username
+            FROM users
+            LEFT JOIN useremails ON useremails.user_id = users.id
+            LEFT JOIN userphones ON userphones.user_id = users.id
+            LEFT JOIN usernames ON usernames.user_id = users.id
+            WHERE 
+            useremails.status_id = 1 AND
+            userphones.status_id = 1 AND
+            usernames.status_id = 1 AND 
+            users.id = %s
+        """, 
+        (user_information["user_id"],))
+        user_data = cursor.fetchone()
+    elif "username" in user_information:
+        cursor.execute("""
+            SELECT 
+                users.id,
+                users.full_name,
+                useremails.email,
+                userphones.phone,
+                usernames.username
+            FROM users
+            LEFT JOIN useremails ON useremails.user_id = users.id
+            LEFT JOIN userphones ON userphones.user_id = users.id
+            LEFT JOIN usernames ON usernames.user_id = users.id
+            WHERE 
+            useremails.status_id = 1 AND
+            userphones.status_id = 1 AND
+            usernames.status_id = 1 AND 
+            usernames.username = %s
+        """, 
+        (user_information["username"],))
+        user_data = cursor.fetchone()
     conn.close()
 
     if user_data:
