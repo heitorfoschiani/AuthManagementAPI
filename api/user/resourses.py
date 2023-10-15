@@ -82,6 +82,9 @@ class UserManagement(Resource):
         user_id = user_id_parse.parse_args()["user_id"]
         username = username_parse.parse_args()["username"]
 
+        if user_id and username:
+            abort(400, "can only provide either user_id or username, not both")
+        
         if not user_id and not username:
             user_id = current_user.id 
             user = current_user
@@ -96,8 +99,8 @@ class UserManagement(Resource):
             }
             user = get_user(user_information)
 
-        if user_id and username:
-            abort(400, "can only provide either user_id or username, not both")
+        if not user:
+            abort(401, "user not founded")
         
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -154,10 +157,12 @@ class UserManagement(Resource):
             update_information["password"] = bcrypt.generate_password_hash(update_information["password"])
             conn = connect_to_postgres()
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT password FROM userpasswords WHERE status_id = 1 AND user_id = %s",
-                (user.id,)
-            )
+            cursor.execute("""
+                SELECT password FROM userpasswords 
+                WHERE status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                user_id = %s;
+            """,
+            (user.id,))
             user_current_password = cursor.fetchone()[0]
             conn.close()
             if bcrypt.check_password_hash(user_current_password.encode("utf-8"), update_information["password"]):
@@ -220,7 +225,7 @@ class Authenticate(Resource):
             conn = connect_to_postgres()
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT password FROM userpasswords WHERE user_id = %s",
+                "SELECT password FROM userpasswords WHERE user_id = %s;",
                 (user.id,)
             )
             user_password = cursor.fetchone()[0]
@@ -284,7 +289,7 @@ class UserPrivilege(Resource):
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "SELECT privilege FROM userprivileges WHERE privilege = %s", 
+                "SELECT privilege FROM userprivileges WHERE privilege = %s;", 
                 (privilege,)
             )
             if not cursor.fetchone():
@@ -344,13 +349,13 @@ class UserPrivilege(Resource):
 
         current_user_privileges = current_user.privileges()
 
-        if privilege == "basic":
-            abort(401, "aneble to inactivate an user using this end-point")
-
         privileges_allowed = ["administrator", "manager"]
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         if not allowed_privileges_present:
             abort(401, "the user does not have permission to delete a privilege of an user")
+
+        if privilege == "basic":
+            abort(401, "aneble to inactivate an user using this end-point")
 
         if privilege == "manager":
             if not "administrator" in current_user_privileges:
