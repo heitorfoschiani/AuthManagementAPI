@@ -45,10 +45,10 @@ class UserManagement(Resource):
 
         user = User(
             id = 0, 
-            full_name = ns_user.payload["full_name"].lower(), 
-            email = ns_user.payload["email"], 
-            phone = ns_user.payload["phone"], 
-            username = ns_user.payload["username"],
+            full_name = ns_user.payload.get("full_name").lower(), 
+            username = ns_user.payload.get("username").lower(),
+            email = ns_user.payload.get("email").lower(), 
+            phone = ns_user.payload.get("phone"), 
         )
 
         if user.username_exists():
@@ -57,7 +57,7 @@ class UserManagement(Resource):
             abort(401, f"{user.email} already exists")
 
         bcrypt = current_app.config["flask_bcrypt"]
-        hashed_password = bcrypt.generate_password_hash(ns_user.payload["password"])
+        hashed_password = bcrypt.generate_password_hash(ns_user.payload.get("password"))
         password = hashed_password.decode("utf-8")
 
         if not user.register(password):
@@ -121,7 +121,7 @@ class UserManagement(Resource):
     def put(self):
         # The put method of this end-point edit an user informations into the server by the user_id informed
 
-        user_id = ns_user.payload["id"]
+        user_id = ns_user.payload.get("id")
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -214,7 +214,7 @@ class Authenticate(Resource):
         # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
 
         user_information = {
-            "username": ns_user.payload["username"],
+            "username": ns_user.payload.get("username").lower(),
         }
         user = get_user(user_information)
 
@@ -232,7 +232,7 @@ class Authenticate(Resource):
             conn.close()
 
             bcrypt = current_app.config["flask_bcrypt"]
-            if bcrypt.check_password_hash(user_password.encode("utf-8"), ns_user.payload["password"]):
+            if bcrypt.check_password_hash(user_password.encode("utf-8"), ns_user.payload.get("password")):
                 access_token = create_access_token(identity=user)
                 refresh_token = create_refresh_token(identity=user)
             else:
@@ -284,7 +284,7 @@ class UserPrivilege(Resource):
     def post(self, user_id):
         # The post method of this end-point set a privilege to the user
 
-        privilege = ns_user.payload["privilege"].lower()
+        privilege = ns_user.payload.get("privilege").lower()
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
@@ -334,7 +334,7 @@ class UserPrivilege(Resource):
     def delete(self, user_id):
         # The delete method of this end-point remove a privilege of the user
 
-        privilege = ns_user.payload["privilege"].lower()
+        privilege = ns_user.payload.get("privilege").lower()
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:

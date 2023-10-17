@@ -53,22 +53,14 @@ def add_status(status: str):
     if not cursor.fetchone():
         cursor.execute("""
             INSERT INTO fkstatus (status)
-            VALUES (%s);
+            VALUES (%s)
+            RETURNING id;
         """, (status,))
+        status_id = cursor.fetchone()[0]
         conn.commit()
-
-        cursor.execute("""
-            SELECT id FROM fkstatus
-            WHERE status = %s
-        """, (status,))
-        fetch = cursor.fetchone()
-
-        status_id = fetch[0]
-
         conn.close()
 
-        return status_id
-    
-    conn.close()
+        if status_id:
+            return status_id
 
     return 0

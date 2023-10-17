@@ -1,15 +1,16 @@
+from typing import Optional
 from datetime import datetime
 
 from database.dbconnection import connect_to_postgres
 
 
 class User:
-    def __init__(self, id: int, full_name: str, email: str, phone: str, username: str):
+    def __init__(self, id: int, full_name: str, username: str, email: str, phone: Optional[str] = None):
         self.id = id
         self.full_name = full_name
+        self.username = username
         self.email = email
         self.phone = phone
-        self.username = username
 
     def register(self, password_hash: str):
         conn = connect_to_postgres()
@@ -19,28 +20,28 @@ class User:
             cursor.execute("""
                 INSERT INTO users (full_name, creation_datetime)
                 VALUES (%s, %s) 
-                RETURNING id
+                RETURNING id;
             """, (self.full_name, datetime.now()))
             user_id = cursor.fetchone()[0]
 
             cursor.execute("""
                 INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s);
             """, (user_id, self.email, 1, datetime.now(), None))
 
             cursor.execute("""
                 INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s);
             """, (user_id, self.phone, 1, datetime.now(), None))
 
             cursor.execute("""
                 INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s);
             """, (user_id, self.username, 1, datetime.now(), None))
 
             cursor.execute("""
                 INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s);
             """, (user_id, password_hash, 1, datetime.now(), None))
             conn.commit()
         except:
