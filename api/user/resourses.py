@@ -155,6 +155,8 @@ class UserManagement(Resource):
         if "password" in update_information:
             bcrypt = current_app.config["flask_bcrypt"]
             update_information["password"] = bcrypt.generate_password_hash(update_information["password"])
+            update_information["password"] = update_information["password"].decode("utf-8")
+
             conn = connect_to_postgres()
             cursor = conn.cursor()
             cursor.execute("""
@@ -224,8 +226,12 @@ class Authenticate(Resource):
             
             conn = connect_to_postgres()
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT password FROM userpasswords WHERE user_id = %s;",
+            cursor.execute("""
+                SELECT password FROM userpasswords 
+                WHERE 
+                status_id = (SELECT id FROM fkstatus WHERE status = 'valid')           
+                user_id = %s;
+            """,
                 (user.id,)
             )
             user_password = cursor.fetchone()[0]

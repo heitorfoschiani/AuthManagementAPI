@@ -126,7 +126,7 @@ class User:
                 """, (datetime.now(), self.id))
 
                 cursor.execute("""
-                    INSERT INTO passwords (user_id, password, status_id, creation_datetime, update_datetime)
+                    INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
                     VALUES (%s, %s, %s, %s, %s);
                 """, (self.id, update_information["password"], 1, datetime.now(), None))
 
