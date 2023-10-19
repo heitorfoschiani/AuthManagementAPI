@@ -9,7 +9,7 @@ from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
 from api import api
-from api.user.objects import get_user
+from api.user.objects import User
 from api.user.resourses import ns_user
 from database.dbmanagement.tables import create_dbtables
 
@@ -36,7 +36,7 @@ def create_app():
             user_information = {
                 "user_id": identity
             }
-            user = get_user(user_information) 
+            user = User.get(user_information) 
             return user
 
         CORS(application)

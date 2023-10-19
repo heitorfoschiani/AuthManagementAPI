@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, create_access_token, create_refresh
 from flask_restx import Namespace, Resource, reqparse
 
 from database.dbconnection import connect_to_postgres
-from api.user.objects import User, get_user
+from api.user.objects import User
 from api.user.models import *
 
 
@@ -92,12 +92,12 @@ class UserManagement(Resource):
             user_information = {
                 "user_id": user_id
             }
-            user = get_user(user_information)
+            user = User.get(user_information)
         else:
             user_information = {
                 "username": username
             }
-            user = get_user(user_information)
+            user = User.get(user_information)
 
         if not user:
             abort(401, "user not founded")
@@ -134,7 +134,7 @@ class UserManagement(Resource):
         user_information = {
             "user_id": user_id
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
         if not user:
             abort(401, "user not founded")
 
@@ -190,7 +190,7 @@ class UserManagement(Resource):
             user_information = {
                 "user_id": user_id
             }
-            user = get_user(user_information)
+            user = User.get(user_information)
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -218,7 +218,7 @@ class Authenticate(Resource):
         user_information = {
             "username": ns_user.payload.get("username").lower(),
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
 
         if user:
             if 'inactive' in user.privileges():
@@ -229,7 +229,7 @@ class Authenticate(Resource):
             cursor.execute("""
                 SELECT password FROM userpasswords 
                 WHERE 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid')           
+                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
                 user_id = %s;
             """,
                 (user.id,)
@@ -264,7 +264,7 @@ class RefreshAuthentication(Resource):
         user_information = {
             "user_id": identity
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
 
         if not user:
             return {
@@ -319,7 +319,7 @@ class UserPrivilege(Resource):
         user_information = {
             "user_id": user_id
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
         if not user:
             abort(404, "user not founded")
         
@@ -377,7 +377,7 @@ class UserPrivilege(Resource):
         user_information = {
             "user_id": user_id
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
         if not user:
             abort(404, "user not founded")
         
@@ -413,7 +413,7 @@ class UserPrivilege(Resource):
         user_information = {
             "user_id": user_id
         }
-        user = get_user(user_information)
+        user = User.get(user_information)
         if not user:
             abort(404, "user not founded")
 

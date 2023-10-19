@@ -12,6 +12,69 @@ class User:
         self.email = email
         self.phone = phone
 
+    @staticmethod
+    def get(user_information: dict):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+
+        try:
+            if "user_id" in user_information:
+                cursor.execute("""
+                    SELECT 
+                        users.id,
+                        users.full_name,
+                        useremails.email,
+                        userphones.phone,
+                        usernames.username
+                    FROM users
+                    LEFT JOIN useremails ON useremails.user_id = users.id
+                    LEFT JOIN userphones ON userphones.user_id = users.id
+                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    WHERE 
+                    useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    users.id = %s;
+                """, 
+                (user_information["user_id"],))
+                user_data = cursor.fetchone()
+            elif "username" in user_information:
+                cursor.execute("""
+                    SELECT 
+                        users.id,
+                        users.full_name,
+                        useremails.email,
+                        userphones.phone,
+                        usernames.username
+                    FROM users
+                    LEFT JOIN useremails ON useremails.user_id = users.id
+                    LEFT JOIN userphones ON userphones.user_id = users.id
+                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    WHERE 
+                    useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    usernames.username = %s;
+                """, 
+                (user_information["username"],))
+                user_data = cursor.fetchone()
+        except:
+            return None
+        finally:
+            conn.close()
+
+        if user_data:
+            user = User(
+                id = user_data[0], 
+                full_name = user_data[1], 
+                email = user_data[2], 
+                phone = user_data[3], 
+                username = user_data[4]
+            )
+            return user
+        
+        return None
+
     def register(self, password_hash: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
@@ -299,61 +362,3 @@ class User:
             return False
 
         return True
-    
-def get_user(user_information: dict):
-
-    conn = connect_to_postgres()
-    cursor = conn.cursor()
-    if "user_id" in user_information:
-        cursor.execute("""
-            SELECT 
-                users.id,
-                users.full_name,
-                useremails.email,
-                userphones.phone,
-                usernames.username
-            FROM users
-            LEFT JOIN useremails ON useremails.user_id = users.id
-            LEFT JOIN userphones ON userphones.user_id = users.id
-            LEFT JOIN usernames ON usernames.user_id = users.id
-            WHERE 
-            useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-            userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-            usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-            users.id = %s;
-        """, 
-        (user_information["user_id"],))
-        user_data = cursor.fetchone()
-    elif "username" in user_information:
-        cursor.execute("""
-            SELECT 
-                users.id,
-                users.full_name,
-                useremails.email,
-                userphones.phone,
-                usernames.username
-            FROM users
-            LEFT JOIN useremails ON useremails.user_id = users.id
-            LEFT JOIN userphones ON userphones.user_id = users.id
-            LEFT JOIN usernames ON usernames.user_id = users.id
-            WHERE 
-            useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-            userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-            usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-            usernames.username = %s;
-        """, 
-        (user_information["username"],))
-        user_data = cursor.fetchone()
-    conn.close()
-
-    if user_data:
-        user = User(
-            id = user_data[0], 
-            full_name = user_data[1], 
-            email = user_data[2], 
-            phone = user_data[3], 
-            username = user_data[4]
-        )
-        return user
-    
-    return None
