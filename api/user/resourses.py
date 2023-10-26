@@ -1,5 +1,5 @@
 from flask import abort, current_app
-from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, current_user
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
 from flask_restx import Namespace, Resource, reqparse
 
 from database.dbconnection import connect_to_postgres
@@ -259,10 +259,8 @@ class RefreshAuthentication(Resource):
     def post(self):
         # The post method of this end-point create an new acess_token for the authenticaded user
 
-        identity = get_jwt_identity()
-
         user_information = {
-            "user_id": identity
+            "user_id": current_user.id
         }
         user = User.get(user_information)
 
