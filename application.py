@@ -13,6 +13,7 @@ from api.user.objects import User
 from api.user.resourses import ns_user
 from database.dbmanagement.tables import create_dbtables
 
+
 def create_app():
     application = Flask(__name__)
 
@@ -32,11 +33,10 @@ def create_app():
         @jwt.user_lookup_loader
         def user_lookup_callback(_jwt_header, jwt_data):
             identity = jwt_data["sub"]
-            
-            user_information = {
+
+            user = User.get({
                 "user_id": identity
-            }
-            user = User.get(user_information) 
+            }) 
             return user
 
         CORS(application)
