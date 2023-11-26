@@ -3,7 +3,6 @@ from flask_jwt_extended import jwt_required, create_access_token, create_refresh
 from flask_restx import Namespace, Resource, reqparse
 
 from database.dbconnection import connect_to_postgres
-from api.auth import require_privileges
 from api.namespaces.user.objects import User
 from api.namespaces.user.models import *
 
@@ -77,7 +76,6 @@ class UserManagement(Resource):
     @ns_user.expect(user_id_parse, username_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
-    @require_privileges(["administrator", "manager"])
     def get(self):
         # The get method of this end-point returns the current user by the acess_token send
 
@@ -103,6 +101,16 @@ class UserManagement(Resource):
 
         if not user:
             abort(401, "user not founded")
+        
+        current_user_privileges = current_user.privileges()
+        privileges_allowed = ["administrator", "manager"]
+        allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
+        if not allowed_privileges_present and user_id != current_user.id:
+            abort(401, "the user does not have permission to access this informations")
+
+        privileges_not_allowed = ["inactive"]
+        if any(privilege in privileges_not_allowed for privilege in current_user_privileges):
+            abort(404, "the user is inactive")
 
         return user
     
