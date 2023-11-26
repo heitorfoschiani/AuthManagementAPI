@@ -1,13 +1,6 @@
 from flask_restx import Api
+from api.auth import authorizations
 
-
-authorizations = {
-    "jsonWebToken": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "Authorization"
-    }
-}
 
 api = Api(
     title="API Authentication Management",
