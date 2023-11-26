@@ -9,8 +9,8 @@ from flask_bcrypt import Bcrypt
 from datetime import timedelta
 
 from api import api
-from api.user.objects import User
-from api.user.resourses import ns_user
+from api.namespaces.user.objects import User
+from api.namespaces.user.resourses import ns_user
 from database.dbmanagement.tables import create_dbtables
 
 
