@@ -10,8 +10,9 @@ from datetime import timedelta
 
 from api import api
 from api.namespaces.user.objects import User
-from api.namespaces.user.resourses import ns_user
 from database.dbmanagement.tables import create_dbtables
+from api.namespaces.user.resources import ns_user
+from api.namespaces.privilege.resources import ns_privilege
 
 
 def create_app():
@@ -43,7 +44,8 @@ def create_app():
 
         api.init_app(application)
         api.add_namespace(ns_user)
+        api.add_namespace(ns_privilege)
 
         return application
-    
+
     return None

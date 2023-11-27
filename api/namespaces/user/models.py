@@ -31,7 +31,3 @@ authenticate_user_model = api.model("AuthenticateUser", {
     "username": fields.String(description="The user's username registred into the server", required=True),
     "password": fields.String(description="The user's password to access the server", required=True),
 })
-
-privilege_model = api.model("Privilege", {
-    "privilege": fields.String(description="The user's privilege into the server", required=True),
-})
