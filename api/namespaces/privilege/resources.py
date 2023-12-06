@@ -1,4 +1,4 @@
-from flask import abort, current_app
+from flask import abort
 from flask_jwt_extended import jwt_required, current_user
 from flask_restx import Namespace, Resource
 
