@@ -22,34 +22,33 @@ class PrivilegeManagement(Resource):
         conn = connect_to_postgres()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT privilege FROM userprivileges;")
-        server_privileges = cursor.fetchone()
-
-        cursor.execute("""
-            SELECT 
-                userprivileges.privilege,
-                users.id as user_id,
-                usernames.username
-            FROM useraccess
-            INNER JOIN users on users.id = useraccess.user_id
-            INNER JOIN usernames ON usernames.user_id = useraccess.user_id
-            INNER JOIN userprivileges ON userprivileges.id = useraccess.privilege_id
-            INNER JOIN fkstatus ON fkstatus.id = useraccess.status_id
-            WHERE
-                useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid');
-        """)
-        user_privileges = cursor.fetchall()
-        conn.close()
-
+        try:
+            cursor.execute("""
+                SELECT 
+                    userprivileges.privilege,
+                    usernames.username
+                FROM useraccess
+                INNER JOIN users on users.id = useraccess.user_id
+                INNER JOIN usernames ON usernames.user_id = useraccess.user_id
+                INNER JOIN userprivileges ON userprivileges.id = useraccess.privilege_id
+                INNER JOIN fkstatus ON fkstatus.id = useraccess.status_id
+                WHERE
+                    useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid');
+            """)
+            user_privileges = cursor.fetchall()
+        except:
+            abort(500, "something went wrong")
+        finally:
+            conn.close()
+        
         dict_user_privileges = {}
-        privileges_checked = []
         for row in user_privileges:
-            privilege = row[0]
-            if privilege not in privileges_checked:
-                privileges_checked.append(privilege)
-                dict_user_privileges[privilege] = {}
+            if not row[0] in dict_user_privileges:
+                dict_user_privileges[row[0]] = []
+            dict_user_privileges[row[0]].append(row[1])
 
-        print(privileges_checked)
+        return dict_user_privileges
 
 @ns_privilege.route("/user-privilege/<int:user_id>")
 class UserPrivilege(Resource):
