@@ -6,6 +6,7 @@ from database.dbmanagement.dbuser.userphones_table import *
 from database.dbmanagement.dbuser.userpasswords_table import *
 from database.dbmanagement.dbuser.userprivileges_table import *
 from database.dbmanagement.dbuser.useraccess_table import *
+from api.namespaces.privilege.objects import Privilege
 
 
 def create_dbtables():
@@ -50,8 +51,10 @@ def create_dbtables():
                 return False
             
         privileges_list = ["administrator", "manager", "basic", "inactive"]
-        for privilege in privileges_list:
-            add_privilege(privilege)
+        for privileg_name in privileges_list:
+            privilege = Privilege(privileg_name)
+            if not privilege.register():
+                return False
 
         if not table_useraccess_exists():
             if not create_table_useraccess():
