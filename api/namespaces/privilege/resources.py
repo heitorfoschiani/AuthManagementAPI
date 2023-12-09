@@ -13,8 +13,10 @@ ns_privilege = Namespace(
     "privilege", 
 )
 
+
 @ns_privilege.route("/privileges")
 class PrivilegeManagement(Resource):
+    @ns_privilege.doc(description="The get method of this end-point returns the privilege types existent into the server and their username owners")
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
@@ -50,15 +52,15 @@ class PrivilegeManagement(Resource):
 
         return dict_user_privileges
 
+
 @ns_privilege.route("/user-privilege/<int:user_id>")
 class UserPrivilege(Resource):
+    @ns_privilege.doc(description="The post method of this end-point set a privilege to the user")
     @ns_privilege.expect(privilege_model)
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
     def post(self, user_id):
-        # The post method of this end-point set a privilege to the user
-
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
@@ -89,13 +91,12 @@ class UserPrivilege(Resource):
             "privileges": user.privileges(),
         }
     
+    @ns_privilege.doc(description="The delete method of this end-point remove a privilege of the user")
     @ns_privilege.expect(privilege_model)
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
     def delete(self, user_id):
-        # The delete method of this end-point remove a privilege of the user
-
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
@@ -135,13 +136,11 @@ class UserPrivilege(Resource):
             "privileges": user.privileges(),
         }
                 
-
+    @ns_privilege.doc(description="The get method of this end-point return the privilege of the user")
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
     def get(self, user_id):
-        # The get method of this end-point return the privilege of the user
-
         current_user_privileges = current_user.privileges()
         if user_id == current_user.id:
             return {
