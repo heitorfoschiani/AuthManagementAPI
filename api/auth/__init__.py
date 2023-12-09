@@ -11,6 +11,7 @@ authorizations = {
     }
 }
 
+
 def require_privileges(*required_privileges):
     def decorator(f):
         @wraps(f)

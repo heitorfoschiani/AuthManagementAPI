@@ -20,6 +20,7 @@ user_id_parse.add_argument(
     help="The user id"
 )
 
+
 username_parse = reqparse.RequestParser()
 username_parse.add_argument(
     "username", 
@@ -27,6 +28,7 @@ username_parse.add_argument(
     required=False, 
     help="The username"
 )
+
 
 privilege_parse = reqparse.RequestParser()
 privilege_parse.add_argument(
@@ -39,10 +41,9 @@ privilege_parse.add_argument(
 
 @ns_user.route("/")
 class UserManagement(Resource):
+    @ns_user.doc(description="The post method of this end-ponis registers a new user into the server")
     @ns_user.expect(register_user_model)
     def post(self):
-        # The post method of this end-ponis registers a new user into the server
-
         user = User(
             id = 0, 
             full_name = ns_user.payload.get("full_name").lower(), 
@@ -72,13 +73,12 @@ class UserManagement(Resource):
             "refresh_token": refresh_token,
         }
 
+    @ns_user.doc(description="The get method of this end-point returns the current user by the acess_token send or some information about the user")
     @ns_user.marshal_with(user_model)
     @ns_user.expect(user_id_parse, username_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def get(self):
-        # The get method of this end-point returns the current user by the acess_token send
-
         user_id = user_id_parse.parse_args()["user_id"]
         username = username_parse.parse_args()["username"]
 
@@ -114,13 +114,12 @@ class UserManagement(Resource):
 
         return user
     
+    @ns_user.doc(description="The put method of this end-point edit an user informations into the server by the user_id informed")
     @ns_user.marshal_with(user_model)
     @ns_user.expect(edit_user_model)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def put(self):
-        # The put method of this end-point edit an user informations into the server by the user_id informed
-
         user_id = ns_user.payload.get("id")
 
         current_user_privileges = current_user.privileges()
@@ -175,12 +174,11 @@ class UserManagement(Resource):
 
         return user
 
+    @ns_user.doc(description="The delete method of this end-point delete an user informationinto the server by the user_id informed")
     @ns_user.expect(user_id_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     def delete(self):
-        # The delete method of this end-point delete an user informationinto the server by the user_id informed
-
         user_id = user_id_parse.parse_args()["user_id"]
 
         if not user_id:
@@ -209,12 +207,12 @@ class UserManagement(Resource):
             "privileges": user.privileges(),
         }
 
+
 @ns_user.route("/authenticate")
 class Authenticate(Resource):
+    @ns_user.doc(description="The post method of this end-point authanticate the user and returns an access token followed by a refresh token")
     @ns_user.expect(authenticate_user_model)
     def post(self):
-        # The post method of this end-point authanticate the user and returns an access token followed by a refresh token
-
         user_information = {
             "username": ns_user.payload.get("username").lower(),
         }
@@ -251,14 +249,14 @@ class Authenticate(Resource):
             "access_token": access_token,
             "refresh_token": refresh_token,
         }
-    
+
+
 @ns_user.route("/refresh-authentication")
 class RefreshAuthentication(Resource):
+    @ns_user.doc(description="The post method of this end-point create an new acess_token for the authenticaded user")
     @ns_user.doc(security="jsonWebToken")
     @jwt_required(refresh=True)
     def post(self):
-        # The post method of this end-point create an new acess_token for the authenticaded user
-
         user_information = {
             "user_id": current_user.id
         }
