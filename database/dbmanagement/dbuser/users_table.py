@@ -30,7 +30,7 @@ def create_table_users():
             CREATE TABLE users (
                 id SERIAL PRIMARY KEY, 
                 full_name VARCHAR(255), 
-                creation_datetime TIMESTAMP
+                creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         conn.commit()

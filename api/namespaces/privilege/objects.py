@@ -10,9 +10,10 @@ class Privilege:
         conn = connect_to_postgres()
         cursor = conn.cursor()
         try:
-            cursor.execute(
-                "SELECT privilege FROM userprivileges WHERE privilege = %s;", 
-                (privilege_name,)
+            cursor.execute("""]
+                SELECT privilege FROM userprivileges 
+                WHERE privilege = %s;
+            """, (privilege_name,)
             )
             fetch = cursor.fetchone()
             if not fetch:

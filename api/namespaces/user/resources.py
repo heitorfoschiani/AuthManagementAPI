@@ -1,6 +1,7 @@
 from flask import abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
 from flask_restx import Namespace, Resource, reqparse
+import logging
 
 from database.dbconnection import connect_to_postgres
 from api.namespaces.user.objects import User

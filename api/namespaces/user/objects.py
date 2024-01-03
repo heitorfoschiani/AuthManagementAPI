@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime
+import logging
 
 from database.dbconnection import connect_to_postgres
 
@@ -31,10 +32,10 @@ class User:
                     LEFT JOIN userphones ON userphones.user_id = users.id
                     LEFT JOIN usernames ON usernames.user_id = users.id
                     WHERE 
-                    useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                    userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                    usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    users.id = %s;
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        users.id = %s;
                 """, 
                 (user_information["user_id"],))
                 user_data = cursor.fetchone()
@@ -51,10 +52,10 @@ class User:
                     LEFT JOIN userphones ON userphones.user_id = users.id
                     LEFT JOIN usernames ON usernames.user_id = users.id
                     WHERE 
-                    useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                    userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                    usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    usernames.username = %s;
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        usernames.username = %s;
                 """, 
                 (user_information["username"],))
                 user_data = cursor.fetchone()
@@ -81,33 +82,34 @@ class User:
 
         try:
             cursor.execute("""
-                INSERT INTO users (full_name, creation_datetime)
-                VALUES (%s, %s) 
+                INSERT INTO users (full_name)
+                VALUES (%s) 
                 RETURNING id;
-            """, (self.full_name, datetime.now()))
+            """, (self.full_name,))
             user_id = cursor.fetchone()[0]
 
             cursor.execute("""
-                INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (user_id, self.email, 1, datetime.now(), None))
+                INSERT INTO useremails (user_id, email)
+                VALUES (%s, %s);
+            """, (user_id, self.email))
 
             cursor.execute("""
-                INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (user_id, self.phone, 1, datetime.now(), None))
+                INSERT INTO userphones (user_id, phone)
+                VALUES (%s, %s);
+            """, (user_id, self.phone))
 
             cursor.execute("""
-                INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (user_id, self.username, 1, datetime.now(), None))
+                INSERT INTO usernames (user_id, username)
+                VALUES (%s, %s);
+            """, (user_id, self.username))
 
             cursor.execute("""
-                INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (user_id, password_hash, 1, datetime.now(), None))
+                INSERT INTO userpasswords (user_id, password)
+                VALUES (%s, %s);
+            """, (user_id, password_hash))
             conn.commit()
-        except:
+        except Exception as e:
+            logging.error(f"Error when register user: {e}")
             return False
         finally:
             conn.close()
@@ -136,14 +138,14 @@ class User:
                     UPDATE useremails
                         SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                     WHERE 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    user_id = %s;
+                        status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        user_id = %s;
                 """, (datetime.now(), self.id))
 
                 cursor.execute("""
-                    INSERT INTO useremails (user_id, email, status_id, creation_datetime, update_datetime)
-                    VALUES (%s, %s, %s, %s, %s);
-                """, (self.id, update_information["email"], 1, datetime.now(), None))
+                    INSERT INTO useremails (user_id, email)
+                    VALUES (%s, %s);
+                """, (self.id, update_information["email"]))
 
                 self.email = update_information["email"]
 
@@ -152,14 +154,14 @@ class User:
                     UPDATE userphones
                         SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                     WHERE 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    user_id = %s;
+                        status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        user_id = %s;
                 """, (datetime.now(), self.id))
 
                 cursor.execute("""
-                    INSERT INTO userphones (user_id, phone, status_id, creation_datetime, update_datetime)
-                    VALUES (%s, %s, %s, %s, %s);
-                """, (self.id, update_information["phone"], 1, datetime.now(), None))
+                    INSERT INTO userphones (user_id, phone)
+                    VALUES (%s, %s);
+                """, (self.id, update_information["phone"]))
 
                 self.phone = update_information["phone"]
 
@@ -168,14 +170,14 @@ class User:
                     UPDATE usernames
                         SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                     WHERE 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    user_id = %s;
+                        status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        user_id = %s;
                 """, (datetime.now(), self.id))
 
                 cursor.execute("""
-                    INSERT INTO usernames (user_id, username, status_id, creation_datetime, update_datetime)
-                    VALUES (%s, %s, %s, %s, %s);
-                """, (self.id, update_information["username"], 1, datetime.now(), None))
+                    INSERT INTO usernames (user_id, username)
+                    VALUES (%s, %s);
+                """, (self.id, update_information["username"]))
 
                 self.username = update_information["username"]
 
@@ -184,14 +186,14 @@ class User:
                     UPDATE userpasswords
                         SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                     WHERE 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    user_id = %s;
+                        status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        user_id = %s;
                 """, (datetime.now(), self.id))
 
                 cursor.execute("""
-                    INSERT INTO userpasswords (user_id, password, status_id, creation_datetime, update_datetime)
-                    VALUES (%s, %s, %s, %s, %s);
-                """, (self.id, update_information["password"], 1, datetime.now(), None))
+                    INSERT INTO userpasswords (user_id, password)
+                    VALUES (%s, %s);
+                """, (self.id, update_information["password"]))
 
             conn.commit()
         except:
@@ -220,14 +222,14 @@ class User:
                 UPDATE useraccess
                     SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                 WHERE
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                user_id = %s;
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    user_id = %s;
             """, (datetime.now(), self.id))
 
             cursor.execute("""
-                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (self.id, privilege_id, 1, datetime.now(), None))
+                INSERT INTO useraccess (user_id, privilege_id)
+                VALUES (%s, %s);
+            """, (self.id, privilege_id))
 
             conn.commit()
         except:
@@ -257,15 +259,15 @@ class User:
                     UPDATE useraccess
                         SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                     WHERE 
-                    privilege_id = (SELECT id FROM userprivileges WHERE privilege = 'inactive') AND 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                    user_id = %s;
+                        privilege_id = (SELECT id FROM userprivileges WHERE privilege = 'inactive') AND 
+                        status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        user_id = %s;
                 """, (datetime.now(), self.id))
                 
             cursor.execute("""
-                INSERT INTO useraccess (user_id, privilege_id, status_id, creation_datetime, update_datetime)
-                VALUES (%s, %s, %s, %s, %s);
-            """, (self.id, privilege_id, 1, datetime.now(), None))
+                INSERT INTO useraccess (user_id, privilege_id)
+                VALUES (%s, %s);
+            """, (self.id, privilege_id))
             conn.commit()
         except:
             return False
@@ -283,9 +285,9 @@ class User:
                 UPDATE useraccess
                     SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
                 WHERE 
-                privilege_id = (SELECT id FROM userprivileges WHERE privilege = %s) AND 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                user_id = %s;
+                    privilege_id = (SELECT id FROM userprivileges WHERE privilege = %s) AND 
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    user_id = %s;
             """, (datetime.now(), privilege, self.id))
             conn.commit()
         except:
@@ -304,8 +306,8 @@ class User:
                 SELECT userprivileges.privilege FROM useraccess
                 INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
                 WHERE 
-                useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                useraccess.user_id = %s;
+                    useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    useraccess.user_id = %s;
             """, (self.id,))
             fetch = cursor.fetchall()
             privileges_list = [item[0] for item in fetch]
@@ -335,8 +337,8 @@ class User:
         cursor.execute("""
             SELECT username FROM usernames 
             WHERE 
-            status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-            username = %s;
+                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                username = %s;
         """, 
         (self.username,))
         fetch = cursor.fetchone()
@@ -352,8 +354,8 @@ class User:
         cursor.execute("""
             SELECT email FROM useremails 
             WHERE 
-            status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-            email = %s;
+                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                email = %s;
         """, 
         (self.email,))
         fetch = cursor.fetchone()
