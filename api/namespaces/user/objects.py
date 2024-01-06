@@ -13,69 +13,6 @@ class User:
         self.email = email
         self.phone = phone
 
-    @staticmethod
-    def get(user_information: dict):
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-
-        try:
-            if "user_id" in user_information:
-                cursor.execute("""
-                    SELECT 
-                        users.id,
-                        users.full_name,
-                        useremails.email,
-                        userphones.phone,
-                        usernames.username
-                    FROM users
-                    LEFT JOIN useremails ON useremails.user_id = users.id
-                    LEFT JOIN userphones ON userphones.user_id = users.id
-                    LEFT JOIN usernames ON usernames.user_id = users.id
-                    WHERE 
-                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                        users.id = %s;
-                """, 
-                (user_information["user_id"],))
-                user_data = cursor.fetchone()
-            elif "username" in user_information:
-                cursor.execute("""
-                    SELECT 
-                        users.id,
-                        users.full_name,
-                        useremails.email,
-                        userphones.phone,
-                        usernames.username
-                    FROM users
-                    LEFT JOIN useremails ON useremails.user_id = users.id
-                    LEFT JOIN userphones ON userphones.user_id = users.id
-                    LEFT JOIN usernames ON usernames.user_id = users.id
-                    WHERE 
-                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                        usernames.username = %s;
-                """, 
-                (user_information["username"],))
-                user_data = cursor.fetchone()
-        except:
-            return None
-        finally:
-            conn.close()
-
-        if user_data:
-            user = User(
-                id = user_data[0], 
-                full_name = user_data[1], 
-                email = user_data[2], 
-                phone = user_data[3], 
-                username = user_data[4]
-            )
-            return user
-        
-        return None
-
     def register(self, password_hash: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
@@ -109,7 +46,7 @@ class User:
             """, (user_id, password_hash))
             conn.commit()
         except Exception as e:
-            logging.error(f"Error when register user: {e}")
+            logging.error(f"An error occurred when registering the user: {e}")
             return False
         finally:
             conn.close()
@@ -196,7 +133,8 @@ class User:
                 """, (self.id, update_information["password"]))
 
             conn.commit()
-        except:
+        except Exception as e:
+            logging.error(f"An error occurred when updating the user: {e}")
             return False
         finally:
             conn.close()
@@ -232,7 +170,8 @@ class User:
             """, (self.id, privilege_id))
 
             conn.commit()
-        except:
+        except Exception as e:
+            logging.error(f"An error occurred when inactivating the user: {e}")
             return False
         finally:
             conn.close()
@@ -269,7 +208,8 @@ class User:
                 VALUES (%s, %s);
             """, (self.id, privilege_id))
             conn.commit()
-        except:
+        except Exception as e:
+            logging.error(f"An error occurred when setting a privilege to user: {e}")
             return False
         finally:
             conn.close()
@@ -290,7 +230,8 @@ class User:
                     user_id = %s;
             """, (datetime.now(), privilege, self.id))
             conn.commit()
-        except:
+        except Exception as e:
+            logging.error(f"An error occurred when deleting a privilege to user: {e}")
             return False
         finally:
             conn.close()
@@ -313,17 +254,41 @@ class User:
             privileges_list = [item[0] for item in fetch]
             if not fetch:
                 return []
-        except:
+        except Exception as e:
+            logging.error(f"An error occurred when get user privileges: {e}")
             return []
         finally:
             conn.close()
 
         return privileges_list
     
+    def get_password_hash(self):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT password FROM userpasswords 
+                WHERE 
+                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                user_id = %s;
+            """,
+                (self.id,)
+            )
+            user_password_hash = cursor.fetchone()[0]
+        except Exception as e:
+            logging.error(f"An error occurred when extract user password hash: {e}")
+            return None
+        finally:
+            conn.close()
+
+        return user_password_hash
+    
     def full_name_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("SELECT full_name FROM users WHERE full_name = %s;", (self.full_name,))
+        cursor.execute("""
+            SELECT full_name FROM users WHERE full_name = %s;
+        """, (self.full_name,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -339,8 +304,7 @@ class User:
             WHERE 
                 status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                 username = %s;
-        """, 
-        (self.username,))
+        """, (self.username,))
         fetch = cursor.fetchone()
         conn.close()
         if not fetch:
@@ -364,3 +328,67 @@ class User:
             return False
 
         return True
+    
+    @staticmethod
+    def get(user_information: dict):
+        conn = connect_to_postgres()
+        cursor = conn.cursor()
+
+        try:
+            if "user_id" in user_information:
+                cursor.execute("""
+                    SELECT 
+                        users.id,
+                        users.full_name,
+                        useremails.email,
+                        userphones.phone,
+                        usernames.username
+                    FROM users
+                    LEFT JOIN useremails ON useremails.user_id = users.id
+                    LEFT JOIN userphones ON userphones.user_id = users.id
+                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    WHERE 
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        users.id = %s;
+                """, 
+                (user_information["user_id"],))
+                user_data = cursor.fetchone()
+            elif "username" in user_information:
+                cursor.execute("""
+                    SELECT 
+                        users.id,
+                        users.full_name,
+                        useremails.email,
+                        userphones.phone,
+                        usernames.username
+                    FROM users
+                    LEFT JOIN useremails ON useremails.user_id = users.id
+                    LEFT JOIN userphones ON userphones.user_id = users.id
+                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    WHERE 
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        usernames.username = %s;
+                """, 
+                (user_information["username"],))
+                user_data = cursor.fetchone()
+        except Exception as e:
+            logging.error(f"An error occurred when get user: {e}")
+            return None
+        finally:
+            conn.close()
+
+        if user_data:
+            user = User(
+                id = user_data[0], 
+                full_name = user_data[1], 
+                email = user_data[2], 
+                phone = user_data[3], 
+                username = user_data[4]
+            )
+            return user
+        
+        return None

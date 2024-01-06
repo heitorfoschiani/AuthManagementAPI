@@ -84,7 +84,7 @@ class UserPrivilege(Resource):
             abort(401, "user already has this privilege")
 
         if not user.set_privilege(privilege_name):
-            abort(500, "error when setting privilege")
+            abort(500, "An error occurred when setting privilege")
 
         return {
             "id": user.id,
@@ -129,7 +129,7 @@ class UserPrivilege(Resource):
             abort(401, "user do not have this privilege")
 
         if not user.delete_privilege(privilege_name):
-            abort(500, "error when remove privilege")
+            abort(500, "An error occurred when remove privilege")
 
         return {
             "id": user.id,

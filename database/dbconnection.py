@@ -2,7 +2,7 @@
 import psycopg2
 from sqlalchemy import create_engine
 
-with open("C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postges_connection_informations.txt") as f:
+with open("C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postges_connection_information.txt") as f:
     lines = f.readlines()
 
 dbhost = lines[0].strip()

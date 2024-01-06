@@ -45,12 +45,14 @@ class UserManagement(Resource):
     @ns_user.doc(description="The post method of this end-ponis registers a new user into the server")
     @ns_user.expect(register_user_model)
     def post(self):
+        js_data = ns_user.payload
+
         user = User(
             id = 0, 
-            full_name = ns_user.payload.get("full_name").lower(), 
-            username = ns_user.payload.get("username").lower(),
-            email = ns_user.payload.get("email").lower(), 
-            phone = ns_user.payload.get("phone"), 
+            full_name = js_data.get("full_name").lower(), 
+            username = js_data.get("username").lower(),
+            email = js_data.get("email").lower(), 
+            phone = js_data.get("phone"), 
         )
 
         if user.username_exists():
@@ -59,20 +61,22 @@ class UserManagement(Resource):
             abort(401, f"{user.email} already exists")
 
         bcrypt = current_app.config["flask_bcrypt"]
-        hashed_password = bcrypt.generate_password_hash(ns_user.payload.get("password"))
+        hashed_password = bcrypt.generate_password_hash(js_data.get("password"))
         password = hashed_password.decode("utf-8")
 
         if not user.register(password):
-            abort(500, "error when register user")
+            abort(500, "An error occurred when register user")
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
-        return {
+        access_user_information = {
             "id": user.id,
             "access_token": access_token,
             "refresh_token": refresh_token,
         }
+
+        return access_user_information
 
     @ns_user.doc(description="The get method of this end-point returns the current user by the acess_token send or some information about the user")
     @ns_user.marshal_with(user_model)
@@ -84,38 +88,36 @@ class UserManagement(Resource):
         username = username_parse.parse_args()["username"]
 
         if user_id and username:
-            abort(400, "can only provide either user_id or username, not both")
+            abort(400, "Can only provide either user_id or username, not both")
         
         if not user_id and not username:
             user_id = current_user.id 
             user = current_user
         elif user_id:
-            user_information = {
+            user = User.get({
                 "user_id": user_id
-            }
-            user = User.get(user_information)
+            })
         else:
-            user_information = {
+            user = User.get({
                 "username": username
-            }
-            user = User.get(user_information)
+            })
 
         if not user:
-            abort(401, "user not founded")
+            abort(401, "User not founded")
         
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         if not allowed_privileges_present and user_id != current_user.id:
-            abort(401, "the user does not have permission to access this informations")
+            abort(401, "The user does not have permission to access this information")
 
         privileges_not_allowed = ["inactive"]
         if any(privilege in privileges_not_allowed for privilege in current_user_privileges):
-            abort(404, "the user is inactive")
+            abort(404, "The user is inactive")
 
         return user
     
-    @ns_user.doc(description="The put method of this end-point edit an user informations into the server by the user_id informed")
+    @ns_user.doc(description="The put method of this end-point edit an user information into the server by the user_id informed")
     @ns_user.marshal_with(user_model)
     @ns_user.expect(edit_user_model)
     @ns_user.doc(security="jsonWebToken")
@@ -129,7 +131,7 @@ class UserManagement(Resource):
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         not_allowed_privileges_present = any(privilege in privileges_not_allowed for privilege in current_user_privileges)
         if (not allowed_privileges_present and user_id != current_user.id) or not_allowed_privileges_present:
-            abort(401, "the user does not have permission to change an information of another user")
+            abort(401, "The user does not have permission to change an information of another user")
 
         user_information = {
             "user_id": user_id
@@ -161,17 +163,17 @@ class UserManagement(Resource):
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT password FROM userpasswords 
-                WHERE status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                user_id = %s;
-            """,
-            (user.id,))
+                WHERE 
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    user_id = %s;
+            """, (user.id,))
             user_current_password = cursor.fetchone()[0]
             conn.close()
             if bcrypt.check_password_hash(user_current_password.encode("utf-8"), update_information["password"]):
                 update_information.pop("password")
 
         if not user.update(update_information):
-            abort(500, "error when update user informations")
+            abort(500, "An error occurred when update user information")
 
         return user
 
@@ -186,27 +188,28 @@ class UserManagement(Resource):
             user_id = current_user.id
             user = current_user
         else:
-            user_information = {
+            user = User.get({
                 "user_id": user_id
-            }
-            user = User.get(user_information)
+            })
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
         allowed_privileges_present = any(privilege in privileges_allowed for privilege in current_user_privileges)
         if not allowed_privileges_present and user_id != current_user.id:
-            abort(401, "the user does not have permission to set a privilege to another user")
+            abort(401, "The user does not have permission to set a privilege to another user")
 
         if "inactive" in user.privileges():
-            abort(401, "user is already inactive")
+            abort(401, "User is already inactive")
 
         if not user.inactivate():
-            abort(500, "error when inactivate user")
+            abort(500, "An error occurred when inactivate user")
 
-        return {
+        user_privilege_information = {
             "id": user.id,
             "privileges": user.privileges(),
         }
+
+        return user_privilege_information
 
 
 @ns_user.route("/authenticate")
@@ -214,42 +217,33 @@ class Authenticate(Resource):
     @ns_user.doc(description="The post method of this end-point authanticate the user and returns an access token followed by a refresh token")
     @ns_user.expect(authenticate_user_model)
     def post(self):
-        user_information = {
-            "username": ns_user.payload.get("username").lower(),
-        }
-        user = User.get(user_information)
+        username = ns_user.payload.get("username").lower()
 
-        if user:
-            if 'inactive' in user.privileges():
-                abort(404, "non-existing active username")
-            
-            conn = connect_to_postgres()
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT password FROM userpasswords 
-                WHERE 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                user_id = %s;
-            """,
-                (user.id,)
-            )
-            user_password = cursor.fetchone()[0]
-            conn.close()
+        user = User.get({
+            "username": username
+        })
 
-            bcrypt = current_app.config["flask_bcrypt"]
-            if bcrypt.check_password_hash(user_password.encode("utf-8"), ns_user.payload.get("password")):
-                access_token = create_access_token(identity=user)
-                refresh_token = create_refresh_token(identity=user)
-            else:
-                abort(401, "incorrect password")
+        if not user:
+            abort(404, "Non-existing active username")
+
+        if 'inactive' in user.privileges():
+            abort(404, "Non-existing active username")
+        
+        user_password_hash = user.get_password_hash()
+        bcrypt = current_app.config["flask_bcrypt"]
+        if bcrypt.check_password_hash(user_password_hash.encode("utf-8"), ns_user.payload.get("password")):
+            access_token = create_access_token(identity=user)
+            refresh_token = create_refresh_token(identity=user)
         else:
-            abort(404, "non-existing active username")
+            abort(401, "Incorrect password")
 
-        return {
+        access_user_information = {
             "user_id": user.id,
             "access_token": access_token,
             "refresh_token": refresh_token,
         }
+
+        return access_user_information
 
 
 @ns_user.route("/refresh-authentication")
@@ -258,23 +252,20 @@ class RefreshAuthentication(Resource):
     @ns_user.doc(security="jsonWebToken")
     @jwt_required(refresh=True)
     def post(self):
-        user_information = {
+        user = User.get({
             "user_id": current_user.id
-        }
-        user = User.get(user_information)
+        })
 
         if not user:
-            return {
-                "user_id": None,
-                "access_token": None,
-                "refresh_token": None,
-            }, 404
+            abort(404, "User not founded")
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
-        return {
+        access_user_information = {
             "user_id": user.id,
             "access_token": access_token, 
             "refresh_token": refresh_token,
         }
+
+        return access_user_information

@@ -16,7 +16,7 @@ def create_dbtables():
         # general tables
         if not table_fkstatus_exists():
             if not create_table_fkstatus():
-                logging.error(f"Error when create table: fkstatus")
+                logging.error(f"An error occurred when create table: fkstatus")
                 return False
             
         status_list = ["valid", "invalid"]
@@ -26,33 +26,33 @@ def create_dbtables():
         # user tables
         if not table_users_exists():
             if not create_table_users():
-                logging.error(f"Error when create table: users")
+                logging.error(f"An error occurred when create table: users")
                 return False
             
         if not table_usernames_exists():
             if not create_table_usernames():
-                logging.error(f"Error when create table: usernames")
+                logging.error(f"An error occurred when create table: usernames")
                 return False
             
         if not table_useremails_exists():
             if not create_table_useremails():
-                logging.error(f"Error when create table: emails")
+                logging.error(f"An error occurred when create table: emails")
                 return False
             
         if not table_userphones_exists():
             if not create_table_userphones():
-                logging.error(f"Error when create table: phones")
+                logging.error(f"An error occurred when create table: phones")
                 return False
             
         if not table_userpasswords_exists():
             if not create_table_userpasswords():
-                logging.error(f"Error when create table: passwords")
+                logging.error(f"An error occurred when create table: passwords")
                 return False
 
         # privilege tables
         if not table_userprivileges_exists():
             if not create_table_userprivileges():
-                logging.error(f"Error when create table: userprivileges")
+                logging.error(f"An error occurred when create table: userprivileges")
                 return False
             
         privileges_list = ["administrator", "manager", "basic", "inactive"]
@@ -63,11 +63,11 @@ def create_dbtables():
 
         if not table_useraccess_exists():
             if not create_table_useraccess():
-                logging.error(f"Error when create table: useraccess")
+                logging.error(f"An error occurred when create table: useraccess")
                 return False
             
     except Exception as e:
-        logging.error(f"Error when create tables: {e}")
+        logging.error(f"An error occurred when create tables: {e}")
 
         return False
 
