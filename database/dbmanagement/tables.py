@@ -11,65 +11,60 @@ from database.dbmanagement.dbuser.useraccess_table import *
 from api.namespaces.privilege.objects import Privilege
 
 
-def create_dbtables():
+def table_exists(table_name: str):
+    # This function check if a table already exists into the database, returning True or False
+    
+    conn = connect_to_postgres()
+    cursor = conn.cursor()
+
     try:
-        # general tables
-        if not table_fkstatus_exists():
-            if not create_table_fkstatus():
-                logging.error(f"An error occurred when create table: fkstatus")
-                return False
-            
-        status_list = ["valid", "invalid"]
-        for status in status_list:
-            add_status(status)
-
-        # user tables
-        if not table_users_exists():
-            if not create_table_users():
-                logging.error(f"An error occurred when create table: users")
-                return False
-            
-        if not table_usernames_exists():
-            if not create_table_usernames():
-                logging.error(f"An error occurred when create table: usernames")
-                return False
-            
-        if not table_useremails_exists():
-            if not create_table_useremails():
-                logging.error(f"An error occurred when create table: emails")
-                return False
-            
-        if not table_userphones_exists():
-            if not create_table_userphones():
-                logging.error(f"An error occurred when create table: phones")
-                return False
-            
-        if not table_userpasswords_exists():
-            if not create_table_userpasswords():
-                logging.error(f"An error occurred when create table: passwords")
-                return False
-
-        # privilege tables
-        if not table_userprivileges_exists():
-            if not create_table_userprivileges():
-                logging.error(f"An error occurred when create table: userprivileges")
-                return False
-            
-        privileges_list = ["administrator", "manager", "basic", "inactive"]
-        for privileg_name in privileges_list:
-            privilege = Privilege(privileg_name)
-            if not privilege.register():
-                return False
-
-        if not table_useraccess_exists():
-            if not create_table_useraccess():
-                logging.error(f"An error occurred when create table: useraccess")
-                return False
-            
+        cursor.execute(f"""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public'
+                AND table_name = '{table_name}'
+            );
+        """)
+        fetch = cursor.fetchone()
+        exists = fetch[0]
     except Exception as e:
-        logging.error(f"An error occurred when create tables: {e}")
+        raise Exception(f"Unable to check if table: '{table_name}' exists in database: {e}")
+    finally:
+        conn.close()
 
-        return False
+    return exists
 
-    return True
+def create_dbtables():
+    # general tables
+    if not table_exists("fkstatus"):
+        create_table_fkstatus()
+        
+    status_list = ["valid", "invalid"]
+    all(add_status(status) for status in status_list)
+
+
+    # user tables
+    if not table_exists("users"):
+        create_table_users()
+        
+    if not table_exists("usernames"):
+        create_table_usernames()
+        
+    if not table_exists("useremails"):
+        create_table_useremails()
+        
+    if not table_exists("userphones"):
+        create_table_userphones()
+        
+    if not table_exists("userpasswords"):
+        create_table_userpasswords()
+
+    if not table_exists("userprivileges"):
+        create_table_userprivileges()
+
+    privileges_list = ["administrator", "manager", "basic", "inactive"]
+    all(Privilege(name).register() for name in privileges_list)
+
+    if not table_exists("useraccess"):
+        create_table_useraccess()
 

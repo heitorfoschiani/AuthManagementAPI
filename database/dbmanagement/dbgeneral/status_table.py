@@ -1,30 +1,12 @@
 from database.dbconnection import connect_to_postgres
 
 
-def table_fkstatus_exists():
-    # This function check if the table "fkstatus" already exists into the database
-    
-    conn = connect_to_postgres()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = 'public'
-            AND table_name = 'fkstatus'
-        );
-    """)
-    if not cursor.fetchone()[0]:
-        conn.close()
-        return False
-
-    conn.close()
-    return True
-
 def create_table_fkstatus():
     # This function creates the "fkstatus" table into the database
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
+
     try:
         cursor.execute("""
             CREATE TABLE fkstatus (
@@ -33,10 +15,8 @@ def create_table_fkstatus():
             );
         """)
         conn.commit()
-        
-        return True
-    except:
-        return False
+    except Exception as e:
+        raise Exception(f"Unable to create table 'fkstatus': {e}")
     finally:
         conn.close()
 
@@ -45,22 +25,21 @@ def add_status(status: str):
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
-    cursor.execute("""
-        SELECT status FROM fkstatus
-        WHERE status = %s
-    """, (status,))
 
-    if not cursor.fetchone():
+    try:
         cursor.execute("""
-            INSERT INTO fkstatus (status)
-            VALUES (%s)
-            RETURNING id;
+            SELECT status FROM fkstatus
+            WHERE status = %s
         """, (status,))
-        status_id = cursor.fetchone()[0]
-        conn.commit()
+        fetch = cursor.fetchone()
+
+        if not fetch:
+            cursor.execute("""
+                INSERT INTO fkstatus (status)
+                VALUES (%s)
+            """, (status,))
+            conn.commit()
+    except Exception as e:
+        raise Exception(f"Unable to add '{status}' into the table 'fkstatus': {e}")
+    finally:
         conn.close()
-
-        if status_id:
-            return status_id
-
-    return 0

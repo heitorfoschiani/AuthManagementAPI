@@ -1,30 +1,12 @@
 from database.dbconnection import connect_to_postgres
 
 
-def table_useremails_exists():
-    # This function check if the table "useremails" already exists into the database
-    
-    conn = connect_to_postgres()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = 'public'
-            AND table_name = 'useremails'
-        );
-    """)
-    if not cursor.fetchone()[0]:
-        conn.close()
-        return False
-
-    conn.close()
-    return True
-
 def create_table_useremails():
     # This function creates the "useremails" table into the database
 
     conn = connect_to_postgres()
     cursor = conn.cursor()
+    
     try:
         cursor.execute("""
             SELECT id FROM fkstatus 
@@ -43,9 +25,7 @@ def create_table_useremails():
             );
         """, (valid_status_id,))
         conn.commit()
-        
-        return True
-    except:
-        return False
+    except Exception as e:
+        raise Exception(f"Unable to create table 'useremails': {e}")
     finally:
         conn.close()

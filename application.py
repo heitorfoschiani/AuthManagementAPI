@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from datetime import timedelta
+import logging
 
 from api import api
 from api.namespaces.user.objects import User
@@ -16,9 +17,20 @@ from api.namespaces.privilege.resources import ns_privilege
 
 
 def create_app():
-    application = Flask(__name__)
+    logging.basicConfig(
+        level=logging.INFO, 
+        format="%(asctime)s %(levelname)s %(message)s", 
+        datefmt="%Y-%m-%d %H:%M:%S", 
+        filename="logs/app.log", 
+    )
 
-    if create_dbtables():
+    logging.info("Initializing the application")
+    
+    try:
+        create_dbtables()
+
+        application = Flask(__name__)
+
         application.config["JWT_SECRET_KEY"] = "my-secret-key"
         application.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
         application.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=6)
@@ -42,10 +54,13 @@ def create_app():
 
         CORS(application)
 
-        api.init_app(application)
-        api.add_namespace(ns_user)
-        api.add_namespace(ns_privilege)
+        api.init_app(application,)
 
-        return application
-
-    return None
+        name_spaces = (ns_user, ns_privilege)
+        for name_space in name_spaces:
+            api.add_namespace(name_space)
+    except Exception as e:
+        logging.critical(f"Application terminated due to an initialization error: {e}")
+        return None
+    
+    return application
