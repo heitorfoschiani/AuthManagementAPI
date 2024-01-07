@@ -46,7 +46,6 @@ class User:
             """, (user_id, password_hash))
             conn.commit()
         except Exception as e:
-            logging.error(f"An error occurred when registering the user: {e}")
             return False
         finally:
             conn.close()
@@ -134,7 +133,6 @@ class User:
 
             conn.commit()
         except Exception as e:
-            logging.error(f"An error occurred when updating the user: {e}")
             return False
         finally:
             conn.close()
@@ -171,7 +169,6 @@ class User:
 
             conn.commit()
         except Exception as e:
-            logging.error(f"An error occurred when inactivating the user: {e}")
             return False
         finally:
             conn.close()
@@ -209,7 +206,6 @@ class User:
             """, (self.id, privilege_id))
             conn.commit()
         except Exception as e:
-            logging.error(f"An error occurred when setting a privilege to user: {e}")
             return False
         finally:
             conn.close()
@@ -231,7 +227,6 @@ class User:
             """, (datetime.now(), privilege, self.id))
             conn.commit()
         except Exception as e:
-            logging.error(f"An error occurred when deleting a privilege to user: {e}")
             return False
         finally:
             conn.close()
@@ -255,7 +250,6 @@ class User:
             if not fetch:
                 return []
         except Exception as e:
-            logging.error(f"An error occurred when get user privileges: {e}")
             return []
         finally:
             conn.close()
@@ -276,7 +270,6 @@ class User:
             )
             user_password_hash = cursor.fetchone()[0]
         except Exception as e:
-            logging.error(f"An error occurred when extract user password hash: {e}")
             return None
         finally:
             conn.close()
@@ -376,7 +369,6 @@ class User:
                 (user_information["username"],))
                 user_data = cursor.fetchone()
         except Exception as e:
-            logging.error(f"An error occurred when get user: {e}")
             return None
         finally:
             conn.close()

@@ -26,3 +26,125 @@ Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
 
 2024-01-06 23:11:14 INFO Request Body: {'username': 'heitor', 'password': '948253'}
 2024-01-06 23:11:15 INFO 127.0.0.1 - - [06/Jan/2024 23:11:15] "POST /user/authenticate HTTP/1.1" 200 -
+2024-01-06 23:58:14 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.122:5001
+2024-01-06 23:58:14 INFO [33mPress CTRL+C to quit[0m
+2024-01-06 23:58:14 INFO  * Restarting with stat
+2024-01-06 23:58:21 WARNING  * Debugger is active!
+2024-01-06 23:58:21 INFO  * Debugger PIN: 591-728-297
+2024-01-06 23:58:21 INFO Request Headers: Host: 127.0.0.1:5001
+Connection: keep-alive
+Content-Length: 50
+Sec-Ch-Ua: "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"
+Accept: application/json
+Content-Type: application/json
+Sec-Ch-Ua-Mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Sec-Ch-Ua-Platform: "Windows"
+Origin: http://127.0.0.1:5001
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://127.0.0.1:5001/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-01-06 23:58:21 INFO Request Body: {'username': 'heitor', 'password': '948253'}
+2024-01-06 23:58:22 INFO 127.0.0.1 - - [06/Jan/2024 23:58:22] "[35m[1mPOST /user/authenticate HTTP/1.1[0m" 500 -
+2024-01-07 00:01:00 INFO  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\__init__.py', reloading
+2024-01-07 00:01:00 INFO  * Restarting with stat
+2024-01-07 00:01:02 WARNING  * Debugger is active!
+2024-01-07 00:01:02 INFO  * Debugger PIN: 591-728-297
+2024-01-07 00:01:07 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.122:5001
+2024-01-07 00:01:07 INFO [33mPress CTRL+C to quit[0m
+2024-01-07 00:01:07 INFO  * Restarting with stat
+2024-01-07 00:01:09 WARNING  * Debugger is active!
+2024-01-07 00:01:09 INFO  * Debugger PIN: 591-728-297
+2024-01-07 00:01:10 INFO Request Headers: Host: 127.0.0.1:5001
+Connection: keep-alive
+Content-Length: 50
+Sec-Ch-Ua: "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"
+Accept: application/json
+Content-Type: application/json
+Sec-Ch-Ua-Mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Sec-Ch-Ua-Platform: "Windows"
+Origin: http://127.0.0.1:5001
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://127.0.0.1:5001/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-01-07 00:01:10 INFO Request Body: {'username': 'heitor', 'password': '948253'}
+2024-01-07 00:01:11 INFO 127.0.0.1 - - [07/Jan/2024 00:01:11] "POST /user/authenticate HTTP/1.1" 200 -
+2024-01-07 00:01:12 INFO Request Headers: Host: 127.0.0.1:5001
+Connection: keep-alive
+Content-Length: 50
+Sec-Ch-Ua: "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"
+Accept: application/json
+Content-Type: application/json
+Sec-Ch-Ua-Mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Sec-Ch-Ua-Platform: "Windows"
+Origin: http://127.0.0.1:5001
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://127.0.0.1:5001/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-01-07 00:01:12 INFO Request Body: {'username': 'heitor', 'password': '948253'}
+2024-01-07 00:01:12 INFO 127.0.0.1 - - [07/Jan/2024 00:01:12] "POST /user/authenticate HTTP/1.1" 200 -
+2024-01-07 00:02:01 INFO  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\config.py', reloading
+2024-01-07 00:02:01 INFO  * Restarting with stat
+2024-01-07 00:02:10 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.122:5001
+2024-01-07 00:02:10 INFO [33mPress CTRL+C to quit[0m
+2024-01-07 00:02:10 INFO  * Restarting with stat
+2024-01-07 00:02:14 WARNING  * Debugger is active!
+2024-01-07 00:02:14 INFO  * Debugger PIN: 591-728-297
+2024-01-07 00:02:17 INFO Request Headers: Host: 127.0.0.1:5001
+Connection: keep-alive
+Content-Length: 50
+Sec-Ch-Ua: "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"
+Accept: application/json
+Content-Type: application/json
+Sec-Ch-Ua-Mobile: ?0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Sec-Ch-Ua-Platform: "Windows"
+Origin: http://127.0.0.1:5001
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Referer: http://127.0.0.1:5001/
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-01-07 00:02:17 INFO Request Body: {'username': 'heitor', 'password': '948253'}
+2024-01-07 00:02:18 INFO 127.0.0.1 - - [07/Jan/2024 00:02:18] "POST /user/authenticate HTTP/1.1" 200 -
+2024-01-07 00:05:01 INFO  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\logs\\__init__.py', reloading
+2024-01-07 00:05:01 INFO  * Restarting with stat
+2024-01-07 00:05:22 INFO  * Restarting with stat
+2024-01-07 00:05:26 INFO  * Restarting with stat
+2024-01-07 00:05:32 INFO  * Restarting with stat
+2024-01-07 00:05:36 INFO  * Restarting with stat
+2024-01-07 00:05:39 INFO  * Restarting with stat
+2024-01-07 00:05:43 INFO  * Restarting with stat
+2024-01-07 00:05:44 INFO  * Restarting with stat
+2024-01-07 00:05:49 INFO  * Restarting with stat
+2024-01-07 00:05:52 INFO  * Restarting with stat
+2024-01-07 00:05:57 INFO  * Restarting with stat

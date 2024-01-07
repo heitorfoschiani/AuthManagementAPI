@@ -4,8 +4,8 @@ import logging
 
 
 def configure_logging():
-    logging.basicConfig(
-        level=logging.WARNING,
+    current_app.logger.basicConfig(
+        level=current_app.logger.WARNING,
         format="%(asctime)s %(levelname)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         filename="app/logs/app.log",

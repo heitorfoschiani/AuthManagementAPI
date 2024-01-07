@@ -26,7 +26,6 @@ class Privilege:
 
                 return True
         except Exception as e:
-            logging.error(f"An error occurred when registering a privilege: {e}")
             return False
         finally:
             conn.close()
@@ -49,7 +48,6 @@ class Privilege:
 
             privilege = Privilege(fetch[0])
         except Exception as e:
-            logging.error(f"An error occurred when get a privilege: {e}")
             return None
         finally:
             conn.close()
