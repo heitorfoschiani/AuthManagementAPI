@@ -269,7 +269,6 @@ class RefreshAuthentication(Resource):
     @ns_user.doc(security="jsonWebToken")
     @jwt_required(refresh=True)
     @log_request_headers_information
-    @log_request_body_information
     def post(self):
         user = User.get({
             "user_id": current_user.id
