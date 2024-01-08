@@ -1,4 +1,4 @@
-from flask import abort
+from flask import abort, current_app
 from flask_jwt_extended import jwt_required, current_user
 from flask_restx import Namespace, Resource
 
@@ -39,8 +39,9 @@ class PrivilegeManagement(Resource):
                     usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid');
             """)
             user_privileges = cursor.fetchall()
-        except:
-            abort(500, "something went wrong")
+        except Exception as e:
+            current_app.logger.error(f"An error occurred when get userprivilege: {e}")
+            abort(500, "An error occurred when get userprivilege")
         finally:
             conn.close()
         
@@ -64,26 +65,32 @@ class UserPrivilege(Resource):
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
-            abort(404, "non-existing privilege")
+            current_app.logger.warning(f"Non-existing privilege")
+            abort(404, "Non-existing privilege")
 
         if privilege_name == "inactive":
-            abort(401, "aneble to inactivate an user using this end-point")
+            current_app.logger.warning(f"Enable to inactivate an user using this end-point")
+            abort(401, "Enable to inactivate an user using this end-point")
 
         if privilege_name in ["administrator", "manager"]:
             if not "administrator" in current_user.privileges():
-                abort(401, "the user does not have permission to set this privilege to another user")
+                current_app.logger.warning(f"The user does not have permission to set this privilege to another user")
+                abort(401, "The user does not have permission to set this privilege to another user")
 
         user_information = {
             "user_id": user_id
         }
         user = User.get(user_information)
         if not user:
-            abort(404, "user not founded")
+            current_app.logger.warning(f"User not founded")
+            abort(404, "User not founded")
         
         if privilege_name in user.privileges():
-            abort(401, "user already has this privilege")
+            current_app.logger.warning(f"User already has this privilege")
+            abort(401, "User already has this privilege")
 
         if not user.set_privilege(privilege_name):
+            current_app.logger.warning(f"An error occurred when setting privilege")
             abort(500, "An error occurred when setting privilege")
 
         return {
@@ -100,35 +107,43 @@ class UserPrivilege(Resource):
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
-            abort(404, "non-existing privilege")
+            current_app.logger.warning(f"Non-existing privilege")
+            abort(404, "Non-existing privilege")
 
         current_user_privileges = current_user.privileges()
 
         if privilege_name == "basic":
-            abort(401, "aneble to inactivate an user using this end-point")
+            current_app.logger.warning(f"Enable to inactivate an user using this end-point")
+            abort(401, "Enable to inactivate an user using this end-point")
 
         if privilege_name == "manager":
             if not "administrator" in current_user_privileges:
-                abort(401, "only an administrator can remove a manager privilege")
+                current_app.logger.warning(f"Only an administrator can remove a manager privilege")
+                abort(401, "Only an administrator can remove a manager privilege")
 
         if privilege_name == "administrator":
             if not "administrator" in current_user_privileges:
-                abort(401, "only an administrator can remove the privilege of another")
+                current_app.logger.warning(f"Only an administrator can remove the privilege of another")
+                abort(401, "Only an administrator can remove the privilege of another")
             
             if user_id == current_user.id:
-                abort(401, "an administrator can not remove the privilege of himself")
+                current_app.logger.warning(f"An administrator can not remove the privilege of himself")
+                abort(401, "An administrator can not remove the privilege of himself")
 
         user_information = {
             "user_id": user_id
         }
         user = User.get(user_information)
         if not user:
-            abort(404, "user not founded")
+            current_app.logger.warning(f"User not founded")
+            abort(404, "User not founded")
         
         if privilege_name not in user.privileges():
-            abort(401, "user do not have this privilege")
+            current_app.logger.warning(f"User do not have this privilege")
+            abort(401, "User do not have this privilege")
 
         if not user.delete_privilege(privilege_name):
+            current_app.logger.warning(f"An error occurred when remove privilege")
             abort(500, "An error occurred when remove privilege")
 
         return {
@@ -154,7 +169,8 @@ class UserPrivilege(Resource):
         })
 
         if not user:
-            abort(404, "user not founded")
+            current_app.logger.warning("User not founded")
+            abort(404, "User not founded")
 
         user_information = {
             "id": user.id,

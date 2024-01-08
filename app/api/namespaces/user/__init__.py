@@ -1,6 +1,5 @@
 from typing import Optional
 from datetime import datetime
-import logging
 
 from app.database.dbconnection import connect_to_postgres
 
@@ -46,23 +45,16 @@ class User:
             """, (user_id, password_hash))
             conn.commit()
         except Exception as e:
-            return False
+            raise Exception(f"Unable to register user: {e}")
         finally:
             conn.close()
-
-        if not user_id:
-            return False
         
         self.id = user_id
 
         if self.id == 1:
-            if not self.set_privilege(privilege="administrator"):
-                return False
+            self.set_privilege(privilege="administrator")
         else:
-            if not self.set_privilege(privilege="basic"):
-                return False
-
-        return True
+            self.set_privilege(privilege="basic")
     
     def update(self, update_information: dict):
         conn = connect_to_postgres()
@@ -133,11 +125,9 @@ class User:
 
             conn.commit()
         except Exception as e:
-            return False
+            raise Exception(f"Unable to update user information: {e}")
         finally:
             conn.close()
-
-        return True
     
     def inactivate(self):
         conn = connect_to_postgres()
@@ -169,11 +159,9 @@ class User:
 
             conn.commit()
         except Exception as e:
-            return False
+            raise Exception(f"Unable to inactive user: {e}")
         finally:
             conn.close()
-
-        return True
 
     def set_privilege(self, privilege: str):
         conn = connect_to_postgres()
@@ -206,11 +194,9 @@ class User:
             """, (self.id, privilege_id))
             conn.commit()
         except Exception as e:
-            return False
+            raise Exception(f"Unable to set user the '{privilege}' privilege: {e}")
         finally:
             conn.close()
-
-        return True
     
     def delete_privilege(self, privilege: str):
         conn = connect_to_postgres()
@@ -227,11 +213,9 @@ class User:
             """, (datetime.now(), privilege, self.id))
             conn.commit()
         except Exception as e:
-            return False
+            raise Exception(f"Unable to remove the '{privilege}' privilege from user: {e}")
         finally:
             conn.close()
-
-        return True
     
     def privileges(self):
         conn = connect_to_postgres()
@@ -259,17 +243,16 @@ class User:
     def get_password_hash(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
+
         try:
             cursor.execute("""
                 SELECT password FROM userpasswords 
                 WHERE 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                user_id = %s;
-            """,
-                (self.id,)
-            )
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    user_id = %s;
+            """, (self.id,))
             user_password_hash = cursor.fetchone()[0]
-        except Exception as e:
+        except:
             return None
         finally:
             conn.close()

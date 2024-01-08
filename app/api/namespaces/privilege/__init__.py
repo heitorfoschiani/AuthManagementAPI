@@ -26,7 +26,7 @@ class Privilege:
 
                 return True
         except Exception as e:
-            return False
+            raise Exception(f"Unable to register privilege: {e}")
         finally:
             conn.close()
 
@@ -47,7 +47,7 @@ class Privilege:
                 return None
 
             privilege = Privilege(fetch[0])
-        except Exception as e:
+        except:
             return None
         finally:
             conn.close()

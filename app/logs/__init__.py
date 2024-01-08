@@ -1,6 +1,5 @@
 from functools import wraps
 from flask import request, current_app
-import logging
 
 
 def configure_logging():
