@@ -4,6 +4,7 @@ from flask_restx import Namespace, Resource
 
 from app.database .dbconnection import connect_to_postgres
 from app.api.auth import require_privileges
+from app.logs import log_request_headers_information, log_request_body_information
 from app.api.namespaces.privilege import Privilege
 from app.api.namespaces.privilege.models import privilege_model
 from app.api.namespaces.user import User
@@ -20,6 +21,8 @@ class PrivilegeManagement(Resource):
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
+    @log_request_headers_information
+    @log_request_body_information
     def get(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
@@ -61,6 +64,8 @@ class UserPrivilege(Resource):
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
+    @log_request_headers_information
+    @log_request_body_information
     def post(self, user_id):
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
@@ -103,6 +108,8 @@ class UserPrivilege(Resource):
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
+    @log_request_headers_information
+    @log_request_body_information
     def delete(self, user_id):
         privilege_name = ns_privilege.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
@@ -155,6 +162,8 @@ class UserPrivilege(Resource):
     @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
+    @log_request_headers_information
+    @log_request_body_information
     def get(self, user_id):
         current_user_privileges = current_user.privileges()
         if user_id == current_user.id:

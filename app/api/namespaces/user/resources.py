@@ -2,7 +2,7 @@ from flask import abort, current_app
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
 from flask_restx import Namespace, Resource, reqparse
 
-from app.logs import log_request_information
+from app.logs import log_request_headers_information, log_request_body_information
 from app.api.namespaces.user import User
 from app.api.namespaces.user.models import *
 
@@ -43,7 +43,7 @@ privilege_parse.add_argument(
 class UserManagement(Resource):
     @ns_user.doc(description="The post method of this end-ponis registers a new user into the server")
     @ns_user.expect(register_user_model)
-    @log_request_information
+    @log_request_headers_information
     def post(self):
         js_data = ns_user.payload
 
@@ -88,7 +88,7 @@ class UserManagement(Resource):
     @ns_user.expect(edit_user_model)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
-    @log_request_information
+    @log_request_headers_information
     def put(self):
         user_id = ns_user.payload.get("id")
 
@@ -143,7 +143,8 @@ class UserManagement(Resource):
     @ns_user.expect(user_id_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
-    @log_request_information
+    @log_request_headers_information
+    @log_request_body_information
     def delete(self):
         user_id = user_id_parse.parse_args()["user_id"]
 
@@ -184,7 +185,8 @@ class UserManagement(Resource):
     @ns_user.expect(user_id_parse, username_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
-    @log_request_information
+    @log_request_headers_information
+    @log_request_body_information
     def get(self):
         user_id = user_id_parse.parse_args()["user_id"]
         username = username_parse.parse_args()["username"]
@@ -227,7 +229,7 @@ class UserManagement(Resource):
 class Authenticate(Resource):
     @ns_user.doc(description="The post method of this end-point authanticate the user and returns an access token followed by a refresh token")
     @ns_user.expect(authenticate_user_model)
-    @log_request_information
+    @log_request_headers_information
     def post(self):
         username = ns_user.payload.get("username").lower()
 
@@ -266,7 +268,8 @@ class RefreshAuthentication(Resource):
     @ns_user.doc(description="The post method of this end-point create an new acess_token for the authenticaded user")
     @ns_user.doc(security="jsonWebToken")
     @jwt_required(refresh=True)
-    @log_request_information
+    @log_request_headers_information
+    @log_request_body_information
     def post(self):
         user = User.get({
             "user_id": current_user.id
