@@ -1,10 +1,11 @@
 from functools import wraps
 from flask import request, current_app
+import logging
 
 
 def configure_logging():
-    current_app.logger.basicConfig(
-        level=current_app.logger.WARNING,
+    logging.basicConfig(
+        level=logging.WARNING,
         format="%(asctime)s %(levelname)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         filename="app/logs/app.log",

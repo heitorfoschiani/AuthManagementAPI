@@ -23,14 +23,10 @@ class Privilege:
                     VALUES (%s);
                 """, (self.name,))
                 conn.commit()
-
-                return True
         except Exception as e:
             raise Exception(f"Unable to register privilege: {e}")
         finally:
             conn.close()
-
-        return True
     
     @staticmethod
     def get_privilege(privilege_name: str):
