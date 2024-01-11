@@ -64,7 +64,9 @@ class UserManagement(Resource):
     @jwt_required()
     @log_request_headers_information
     def put(self):
-        user_id = ns_user.payload.get("id")
+        js_data = ns_user.payload
+
+        user_id = js_data.get("id")
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -113,14 +115,16 @@ class UserManagement(Resource):
 
         return user
 
-    @ns_user.doc(description="The delete method of this end-point delete an user informationinto the server by the user_id informed")
+    @ns_user.doc(description="The delete method of this end-point delete an user information into the server by the user_id informed")
     @ns_user.expect(user_id_parse)
     @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
     def delete(self):
-        user_id = user_id_parse.parse_args()["user_id"]
+        parse_data = user_id_parse.parse_args()
+
+        user_id = parse_data["user_id"]
 
         if not user_id:
             user_id = current_user.id
@@ -162,8 +166,10 @@ class UserManagement(Resource):
     @log_request_headers_information
     @log_request_body_information
     def get(self):
-        user_id = user_id_parse.parse_args()["user_id"]
-        username = username_parse.parse_args()["username"]
+        parse_data = user_id_parse.parse_args()
+
+        user_id = parse_data["user_id"]
+        username = parse_data["username"]
 
         if user_id and username:
             current_app.logger.warning("Can only provide either user_id or username, not both")
@@ -205,7 +211,9 @@ class Authenticate(Resource):
     @ns_user.expect(authenticate_user_model)
     @log_request_headers_information
     def post(self):
-        username = ns_user.payload.get("username").lower()
+        js_data = ns_user.payload
+
+        username = js_data.get("username").lower()
 
         user = User.get({
             "username": username

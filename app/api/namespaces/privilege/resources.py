@@ -67,7 +67,9 @@ class UserPrivilege(Resource):
     @log_request_headers_information
     @log_request_body_information
     def post(self, user_id):
-        privilege_name = ns_privilege.payload.get("privilege").lower()
+        js_data = ns_privilege.payload
+
+        privilege_name = js_data["privilege"].lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
             current_app.logger.warning(f"Non-existing privilege")
@@ -98,10 +100,12 @@ class UserPrivilege(Resource):
             current_app.logger.warning(f"An error occurred when setting privilege")
             abort(500, "An error occurred when setting privilege")
 
-        return {
+        user_privileges = {
             "id": user.id,
             "privileges": user.privileges(),
         }
+
+        return user_privileges
     
     @ns_privilege.doc(description="The delete method of this end-point remove a privilege of the user")
     @ns_privilege.expect(privilege_model)
@@ -137,10 +141,10 @@ class UserPrivilege(Resource):
                 current_app.logger.warning(f"An administrator can not remove the privilege of himself")
                 abort(401, "An administrator can not remove the privilege of himself")
 
-        user_information = {
+        user = User.get({
             "user_id": user_id
-        }
-        user = User.get(user_information)
+        })
+
         if not user:
             current_app.logger.warning(f"User not founded")
             abort(404, "User not founded")
@@ -153,10 +157,12 @@ class UserPrivilege(Resource):
             current_app.logger.warning(f"An error occurred when remove privilege")
             abort(500, "An error occurred when remove privilege")
 
-        return {
+        user_privileges = {
             "id": user.id,
             "privileges": user.privileges(),
         }
+
+        return user_privileges
                 
     @ns_privilege.doc(description="The get method of this end-point return the privilege of the user")
     @ns_privilege.doc(security="jsonWebToken")
@@ -181,9 +187,9 @@ class UserPrivilege(Resource):
             current_app.logger.warning("User not founded")
             abort(404, "User not founded")
 
-        user_information = {
+        user_privileges = {
             "id": user.id,
             "privileges": user.privileges(),
         }
 
-        return user_information
+        return user_privileges
