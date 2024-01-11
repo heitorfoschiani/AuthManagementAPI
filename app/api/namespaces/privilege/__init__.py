@@ -1,5 +1,3 @@
-import logging
-
 from app.database .dbconnection import connect_to_postgres
 
 
@@ -32,6 +30,7 @@ class Privilege:
     def get_privilege(privilege_name: str):
         conn = connect_to_postgres()
         cursor = conn.cursor()
+        
         try:
             cursor.execute("""]
                 SELECT privilege FROM userprivileges 

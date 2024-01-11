@@ -1,0 +1,16 @@
+2024-01-10 21:56:33 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.122:5001
+2024-01-10 21:56:33 INFO [33mPress CTRL+C to quit[0m
+2024-01-10 21:56:33 INFO  * Restarting with stat
+2024-01-10 21:56:35 WARNING  * Debugger is active!
+2024-01-10 21:56:35 INFO  * Debugger PIN: 591-728-297
+2024-01-10 21:58:20 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.122:5001
+2024-01-10 21:58:20 INFO [33mPress CTRL+C to quit[0m
+2024-01-10 21:58:20 INFO  * Restarting with stat
+2024-01-10 21:58:22 WARNING  * Debugger is active!
+2024-01-10 21:58:22 INFO  * Debugger PIN: 591-728-297

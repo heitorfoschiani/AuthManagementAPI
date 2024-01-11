@@ -1,41 +1,15 @@
 from flask import abort, current_app
+from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
-from flask_restx import Namespace, Resource, reqparse
 
 from app.logs import log_request_headers_information, log_request_body_information
 from app.api.namespaces.user import User
-from app.api.namespaces.user.models import *
+from .models import user_model, register_user_model, edit_user_model, authenticate_user_model
+from .parse import user_id_parse, username_parse
 
 
 ns_user = Namespace(
     "user", 
-)
-
-
-user_id_parse = reqparse.RequestParser()
-user_id_parse.add_argument(
-    "user_id", 
-    type=int, 
-    required=False, 
-    help="The user id"
-)
-
-
-username_parse = reqparse.RequestParser()
-username_parse.add_argument(
-    "username", 
-    type=str, 
-    required=False, 
-    help="The username"
-)
-
-
-privilege_parse = reqparse.RequestParser()
-privilege_parse.add_argument(
-    "privilege", 
-    type=str, 
-    required=False, 
-    help="The privilege to be defined"
 )
 
 

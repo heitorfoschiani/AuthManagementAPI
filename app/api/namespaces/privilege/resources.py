@@ -1,13 +1,13 @@
 from flask import abort, current_app
-from flask_jwt_extended import jwt_required, current_user
 from flask_restx import Namespace, Resource
+from flask_jwt_extended import jwt_required, current_user
 
 from app.database .dbconnection import connect_to_postgres
 from app.api.auth import require_privileges
 from app.logs import log_request_headers_information, log_request_body_information
-from app.api.namespaces.privilege import Privilege
-from app.api.namespaces.privilege.models import privilege_model
 from app.api.namespaces.user import User
+from app.api.namespaces.privilege import Privilege
+from .models import privilege_model
 
 
 ns_privilege = Namespace(

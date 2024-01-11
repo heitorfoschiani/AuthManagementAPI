@@ -55,8 +55,8 @@ def table_exists(table_name: str):
 
 def initialize_fkstatus():
     status_list = ["valid", "invalid"]
-    list(map(add_status, status_list))
+    list(add_status(status) for status in status_list)
 
 def initialize_privileges():
     privileges_list = ["administrator", "manager", "basic", "inactive"]
-    all(Privilege(name).register() for name in privileges_list)
+    list(Privilege(name).register() for name in privileges_list)
