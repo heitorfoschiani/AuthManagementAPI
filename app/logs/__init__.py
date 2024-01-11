@@ -3,12 +3,13 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 from functools import wraps
 
+
 def configure_logging():
     handler = TimedRotatingFileHandler(
         'app/logs/api.log', 
         when="D", 
         interval=1, 
-        backupCount=7  # Keep 7 days of logs
+        backupCount=7
     )
     handler.setFormatter(logging.Formatter(
         fmt="%(asctime)s %(levelname)s %(message)s",
