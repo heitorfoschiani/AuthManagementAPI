@@ -174,8 +174,8 @@ class User:
             """, (privilege,))
             fetch = cursor.fetchone()
             if not fetch:
-                conn.close()
-                return False
+                raise Exception("Non-existing privilege")
+            
             privilege_id = int(fetch[0])
 
             if privilege == "basic":

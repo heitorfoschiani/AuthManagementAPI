@@ -15,52 +15,71 @@ ns_user = Namespace(
 
 @ns_user.route("/")
 class UserManagement(Resource):
-    @ns_user.doc(description="The post method of this end-ponis registers a new user into the server")
+    @ns_user.doc(
+        description="""
+            The post method of this end-point registers a new user into the server.
+            On success, returns the user's ID and the access tokens.
+        """,
+        responses={
+            201: "User successfully registered", 
+            400: "Missing field in json data", 
+            409: "Username or email already exists", 
+            500: "Internal server error"
+        }
+    )
     @ns_user.expect(register_user_model)
     @log_request_headers_information
     def post(self):
         js_data = ns_user.payload
 
+        required_fields = ["full_name", "username", "email", "password"]
+        for field in required_fields:
+            if field not in js_data:
+                abort(400, f"{field} is required")
+
         user = User(
-            id = 0, 
-            full_name = js_data.get("full_name").lower(), 
-            username = js_data.get("username").lower(),
-            email = js_data.get("email").lower(), 
-            phone = js_data.get("phone"), 
+            id=0, 
+            full_name=js_data.get("full_name").lower(), 
+            username=js_data.get("username").lower(), 
+            email=js_data.get("email").lower(), 
+            phone=js_data.get("phone")
         )
 
-        if user.username_exists():
-            current_app.logger.warning(f"{user.username} already exists")
-            abort(401, f"{user.username} already exists")
-        if user.email_exists():
-            current_app.logger.warning(f"{user.email} already exists")
-            abort(401, f"{user.email} already exists")
+        if user.username_exists() or user.email_exists():
+            current_app.logger.error(f"User with username '{user.username}' or email '{user.email}' already exists")
+            abort(409, f"User with username '{user.username}' or email '{user.email}' already exists")
 
-        bcrypt = current_app.config["flask_bcrypt"]
-        hashed_password = bcrypt.generate_password_hash(js_data.get("password"))
-        password = hashed_password.decode("utf-8")
-
-        try:
-            user.register(password)
-        except Exception as e:
-            current_app.logger.error(f"An error occurred when register user: {e}")
-            abort(500, "An error occurred when register user")
+        bcrypt = current_app.config['flask_bcrypt']
+        hashed_password = bcrypt.generate_password_hash(js_data['password'])
+        user.register(hashed_password.decode('utf-8'))
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
 
-        access_user_information = {
-            "id": user.id,
-            "access_token": access_token,
-            "refresh_token": refresh_token,
+        user_access_information = {
+            'id': user.id, 
+            'access_token': access_token, 
+            'refresh_token': refresh_token
         }
 
-        return access_user_information
+        return user_access_information, 201
     
-    @ns_user.doc(description="The put method of this end-point edit an user information into the server by the user_id informed")
+    @ns_user.doc(
+        description="""
+            The put method of this end-point edit an existing user's information by user_id. 
+            Only users with 'administrator' or 'manager' privileges might update information of another user.
+        """,
+        responses={
+            200: 'User information updated successfully',
+            401: 'Unauthorized',
+            403: "Forbidden - User does not have the necessary privileges",
+            404: "User not found",
+            500: 'Internal server error'
+        },
+        security="jsonWebToken"
+    )
     @ns_user.marshal_with(user_model)
     @ns_user.expect(edit_user_model)
-    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     @log_request_headers_information
     def put(self):
@@ -75,29 +94,34 @@ class UserManagement(Resource):
         not_allowed_privileges_present = any(privilege in privileges_not_allowed for privilege in current_user_privileges)
         if (not allowed_privileges_present and user_id != current_user.id) or not_allowed_privileges_present:
             current_app.logger.warning(f"The user does not have permission to change an information of another user")
-            abort(401, "The user does not have permission to change an information of another user")
+            abort(403, "The user does not have permission to change an information of another user")
 
-        user_information = {
+        user = User.get({
             "user_id": user_id
-        }
-        user = User.get(user_information)
+        })
         if not user:
             current_app.logger.warning("User not founded")
-            abort(401, "User not founded")
+            abort(404, "User not founded")
 
         update_information = ns_user.payload
-
-        if "email" in update_information:
-            if update_information["email"] == user.email:
-                update_information.pop("email")
-
-        if "phone" in update_information:
-            if update_information["phone"] == user.phone:
-                update_information.pop("phone")
 
         if "username" in update_information:
             if update_information["username"] == user.username:
                 update_information.pop("username")
+            elif user.username_exists():
+                current_app.logger.warning(f"{user.username} already exists")
+                abort(409, f"{user.username} already exists")
+
+        if "email" in update_information:
+            if update_information["email"] == user.email:
+                update_information.pop("email")
+            elif user.username_exists():
+                current_app.logger.warning(f"{user.username} already exists")
+                abort(409, f"{user.username} already exists")
+
+        if "phone" in update_information:
+            if update_information["phone"] == user.phone:
+                update_information.pop("phone")
 
         if "password" in update_information:
             bcrypt = current_app.config["flask_bcrypt"]
@@ -115,24 +139,35 @@ class UserManagement(Resource):
 
         return user
 
-    @ns_user.doc(description="The delete method of this end-point delete an user information into the server by the user_id informed")
+    @ns_user.doc(
+        description="""
+            The delete method of this end-point inactivate an user by user_id. 
+            Only users with 'administrator' or 'manager' privileges can inactivate another user.
+        """,
+        responses={
+            200: 'User successfully inactivated',
+            401: 'Unauthorized or user already inactive',
+            403: "Forbidden - User does not have the necessary privileges",
+            500: 'Internal server error'
+        },
+        security="jsonWebToken"
+    )
     @ns_user.expect(user_id_parse)
-    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
     def delete(self):
         parse_data = user_id_parse.parse_args()
 
-        user_id = parse_data["user_id"]
+        user_id = parse_data.get("user_id")
+        username = parse_data.get("username")
 
-        if not user_id:
-            user_id = current_user.id
-            user = current_user
+        if user_id:
+            user = User.get({"user_id": user_id})
+        elif username:
+            user = User.get({"username": username})
         else:
-            user = User.get({
-                "user_id": user_id
-            })
+            user = current_user
 
         current_user_privileges = current_user.privileges()
         privileges_allowed = ["administrator", "manager"]
@@ -158,10 +193,23 @@ class UserManagement(Resource):
 
         return user_privilege_information
 
-    @ns_user.doc(description="The get method of this end-point returns the current user by the acess_token send or some information about the user")
+    @ns_user.doc(
+        description="""
+            The get method of this end-point returns user information based on the provided access token, user_id, or username. 
+            Only 'administrator' or 'manager' users, or the user themself, can access information.
+        """,
+        responses={
+            200: 'User information returned successfully',
+            400: 'Bad request - invalid parameters',
+            401: 'Unauthorized or user not found',
+            403: "Forbidden - User does not have the necessary privileges",
+            404: 'User is inactive',
+            500: 'Internal server error'
+        },
+        security="jsonWebToken"
+    )
     @ns_user.marshal_with(user_model)
     @ns_user.expect(user_id_parse, username_parse)
-    @ns_user.doc(security="jsonWebToken")
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
@@ -188,6 +236,7 @@ class UserManagement(Resource):
             })
 
         if not user:
+            current_app.logger.warning("User not founded")
             abort(401, "User not founded")
         
         current_user_privileges = current_user.privileges()
@@ -207,7 +256,17 @@ class UserManagement(Resource):
 
 @ns_user.route("/authenticate")
 class Authenticate(Resource):
-    @ns_user.doc(description="The post method of this end-point authanticate the user and returns an access token followed by a refresh token")
+    @ns_user.doc(
+        description="""
+            This end-point authenticates a user with username and password, and returns access and refresh tokens upon successful authentication.
+        """,
+        responses={
+            200: 'Authentication successful',
+            401: 'Incorrect password',
+            404: 'Non-existing username',
+            500: 'Internal server error'
+        }
+    )
     @ns_user.expect(authenticate_user_model)
     @log_request_headers_information
     def post(self):
@@ -215,26 +274,19 @@ class Authenticate(Resource):
 
         username = js_data.get("username").lower()
 
-        user = User.get({
-            "username": username
-        })
-
-        if not user:
-            current_app.logger.warning("Non-existing active username")
-            abort(404, "Non-existing active username")
-
-        if 'inactive' in user.privileges():
-            current_app.logger.warning("Non-existing active username")
-            abort(404, "Non-existing active username")
+        user = User.get({"username": username})
+        if not user or 'inactive' in user.privileges():
+            current_app.logger.warning("Non-existing or inactive username.")
+            abort(404, "Non-existing or inactive username.")
         
         user_password_hash = user.get_password_hash()
         bcrypt = current_app.config["flask_bcrypt"]
-        if bcrypt.check_password_hash(user_password_hash.encode("utf-8"), ns_user.payload.get("password")):
-            access_token = create_access_token(identity=user)
-            refresh_token = create_refresh_token(identity=user)
-        else:
+        if not bcrypt.check_password_hash(user_password_hash.encode("utf-8"), ns_user.payload.get("password")):
             current_app.logger.warning("Incorrect password")
             abort(401, "Incorrect password")
+
+        access_token = create_access_token(identity=user)
+        refresh_token = create_refresh_token(identity=user)
 
         access_user_information = {
             "user_id": user.id,
@@ -247,8 +299,17 @@ class Authenticate(Resource):
 
 @ns_user.route("/refresh-authentication")
 class RefreshAuthentication(Resource):
-    @ns_user.doc(description="The post method of this end-point create an new acess_token for the authenticaded user")
-    @ns_user.doc(security="jsonWebToken")
+    @ns_user.doc(
+        description="""
+            This end-point generates a new access token for the authenticated user using a valid refresh token.
+        """,
+        responses={
+            200: 'New access token generated successfully',
+            404: 'User not found',
+            500: 'Internal server error'
+        },
+        security="jsonWebToken"
+    )
     @jwt_required(refresh=True)
     @log_request_headers_information
     def post(self):

@@ -1,5 +1,5 @@
-from flask_jwt_extended import current_user
 from flask_restx import abort
+from flask_jwt_extended import current_user
 from functools import wraps
 
 
@@ -19,7 +19,7 @@ def require_privileges(*required_privileges):
             current_user_privileges = current_user.privileges()
             
             if not any(privilege in current_user_privileges for privilege in required_privileges):
-                abort(401, "Insufficient privileges")
+                abort(403, "Insufficient privileges")
 
             return f(*args, **kwargs)
         

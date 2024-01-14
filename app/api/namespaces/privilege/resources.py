@@ -17,8 +17,18 @@ ns_privilege = Namespace(
 
 @ns_privilege.route("/privileges")
 class PrivilegeManagement(Resource):
-    @ns_privilege.doc(description="The get method of this end-point returns the privilege types existent into the server and their username owners")
-    @ns_privilege.doc(security="jsonWebToken")
+    @ns_privilege.doc(
+        description="""
+            The get method of this end-point returns the privilege types existent into the server and their username owners
+        """,
+        responses={
+            200: "Data returned successfully", 
+            403: "Forbidden - User does not have the necessary privileges", 
+            500: "Internal server error"
+        },
+        security="jsonWebToken"
+    )
+    @ns_privilege.doc()
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
@@ -58,10 +68,26 @@ class PrivilegeManagement(Resource):
 
 
 @ns_privilege.route("/user-privilege/<int:user_id>")
+@ns_privilege.doc(params={"user_id": "The user id into the server."})
 class UserPrivilege(Resource):
-    @ns_privilege.doc(description="The post method of this end-point set a privilege to the user")
+    @ns_privilege.doc(
+        description="""
+            The post method of this end-point set a privilege to the user.
+            Only users with 'administrator' or 'manager' privileges might set a new privilege to another user.
+            Only users with 'administrator' privilege might set a 'administrator' or 'manager' privileges.
+            This end-point can't be used for inactivate an user. Use '/user' in delete method instead.
+        """,
+        responses={
+            200: "Privilege assigned to user successfully", 
+            403: "Forbidden - User does not have the necessary privileges", 
+            404: "Information sent was not founded", 
+            405: "Enable to use this end-point for this purpose", 
+            409: "User already has this privilege", 
+            500: "Internal server error"
+        },
+        security="jsonWebToken"
+    )
     @ns_privilege.expect(privilege_model)
-    @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
@@ -75,14 +101,14 @@ class UserPrivilege(Resource):
             current_app.logger.warning(f"Non-existing privilege")
             abort(404, "Non-existing privilege")
 
-        if privilege_name == "inactive":
-            current_app.logger.warning(f"Enable to inactivate an user using this end-point")
-            abort(401, "Enable to inactivate an user using this end-point")
-
         if privilege_name in ["administrator", "manager"]:
             if not "administrator" in current_user.privileges():
                 current_app.logger.warning(f"The user does not have permission to set this privilege to another user")
-                abort(401, "The user does not have permission to set this privilege to another user")
+                abort(403, "The user does not have permission to set this privilege to another user")
+
+        if privilege_name == "inactive":
+            current_app.logger.warning(f"Enable to inactivate an user using this end-point")
+            abort(405, "Enable to inactivate an user using this end-point")
 
         user_information = {
             "user_id": user_id
@@ -94,10 +120,12 @@ class UserPrivilege(Resource):
         
         if privilege_name in user.privileges():
             current_app.logger.warning(f"User already has this privilege")
-            abort(401, "User already has this privilege")
+            abort(409, "User already has this privilege")
 
-        if not user.set_privilege(privilege_name):
-            current_app.logger.warning(f"An error occurred when setting privilege")
+        try:
+            user.set_privilege(privilege_name)
+        except Exception as e:
+            current_app.logger.warning(f"An error occurred when setting privilege: {e}")
             abort(500, "An error occurred when setting privilege")
 
         user_privileges = {
@@ -107,9 +135,25 @@ class UserPrivilege(Resource):
 
         return user_privileges
     
-    @ns_privilege.doc(description="The delete method of this end-point remove a privilege of the user")
+    @ns_privilege.doc(
+        description="""
+            The delete method of this end-point remove a privilege of an user
+            Only users with 'administrator' or 'manager' privileges might remove a privilege of a user.
+            Only an administrator can remove a manager privilege.
+            Only an administrator can remove the privilege of another.
+            This end-point can't be used for inactivate an user. Use '/user' in delete method instead.
+        """, 
+        responses={
+            200: "Privilege removed successfully", 
+            403: "Forbidden - User does not have the necessary privileges", 
+            404: "Information sent was not founded", 
+            405: "Enable to use this end-point for this purpose", 
+            409: "User already has this privilege", 
+            500: "Internal server error"
+        }, 
+        security="jsonWebToken"
+    )
     @ns_privilege.expect(privilege_model)
-    @ns_privilege.doc(security="jsonWebToken")
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
@@ -123,23 +167,23 @@ class UserPrivilege(Resource):
 
         current_user_privileges = current_user.privileges()
 
-        if privilege_name == "basic":
+        if privilege_name == "inactive":
             current_app.logger.warning(f"Enable to inactivate an user using this end-point")
-            abort(401, "Enable to inactivate an user using this end-point")
+            abort(405, "Enable to inactivate an user using this end-point")
 
         if privilege_name == "manager":
             if not "administrator" in current_user_privileges:
                 current_app.logger.warning(f"Only an administrator can remove a manager privilege")
-                abort(401, "Only an administrator can remove a manager privilege")
+                abort(403, "Only an administrator can remove a manager privilege")
 
         if privilege_name == "administrator":
             if not "administrator" in current_user_privileges:
                 current_app.logger.warning(f"Only an administrator can remove the privilege of another")
-                abort(401, "Only an administrator can remove the privilege of another")
+                abort(403, "Only an administrator can remove the 'administrator' privilege of another")
             
             if user_id == current_user.id:
                 current_app.logger.warning(f"An administrator can not remove the privilege of himself")
-                abort(401, "An administrator can not remove the privilege of himself")
+                abort(403, "An administrator can not remove the privilege of himself")
 
         user = User.get({
             "user_id": user_id
@@ -151,7 +195,7 @@ class UserPrivilege(Resource):
         
         if privilege_name not in user.privileges():
             current_app.logger.warning(f"User do not have this privilege")
-            abort(401, "User do not have this privilege")
+            abort(404, "User do not have this privilege")
 
         if not user.delete_privilege(privilege_name):
             current_app.logger.warning(f"An error occurred when remove privilege")
@@ -164,15 +208,25 @@ class UserPrivilege(Resource):
 
         return user_privileges
                 
-    @ns_privilege.doc(description="The get method of this end-point return the privilege of the user")
-    @ns_privilege.doc(security="jsonWebToken")
+    @ns_privilege.doc(
+        description="""
+            The get method of this end-point returns the privileges of an user.
+        """,
+        responses={
+            200: "Privilege of the user returned successfully", 
+            403: "Forbidden - User does not have the necessary privileges", 
+            404: "Information sent was not founded", 
+            500: "Internal server error"
+        },
+        security="jsonWebToken"
+    )
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
     @log_request_body_information
     def get(self, user_id):
-        current_user_privileges = current_user.privileges()
         if user_id == current_user.id:
+            current_user_privileges = current_user.privileges()
             user_information = {
                 "user_id": user_id,
                 "privileges": current_user_privileges,
