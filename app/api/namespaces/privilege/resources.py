@@ -149,7 +149,6 @@ class UserPrivilege(Resource):
             403: "Forbidden - User does not have the necessary privileges", 
             404: "Information sent was not founded", 
             405: "Enable to use this end-point for this purpose", 
-            409: "User already has this privilege", 
             500: "Internal server error"
         }, 
         security="jsonWebToken"
