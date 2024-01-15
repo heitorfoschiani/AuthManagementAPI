@@ -32,7 +32,7 @@ class Privilege:
         cursor = conn.cursor()
         
         try:
-            cursor.execute("""]
+            cursor.execute("""
                 SELECT privilege FROM userprivileges 
                 WHERE privilege = %s;
             """, (privilege_name,)
@@ -42,8 +42,8 @@ class Privilege:
                 return None
 
             privilege = Privilege(fetch[0])
-        except:
-            return None
+        except Exception as e:
+            raise Exception(f"Unable to get '{privilege_name}' privilege: {e}")
         finally:
             conn.close()
 
