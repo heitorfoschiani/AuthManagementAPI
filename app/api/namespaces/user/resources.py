@@ -54,8 +54,8 @@ class UserManagement(Resource):
             abort(409, f"User with email '{user.email}' already exists")
 
         bcrypt = current_app.config["flask_bcrypt"]
-        hashed_password = bcrypt.generate_password_hash(js_data["password"])
-        user.register(hashed_password.decode("utf-8"))
+        hashed_password = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
+        user.register(hashed_password)
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
@@ -111,7 +111,7 @@ class UserManagement(Resource):
             else:
                 user.username = js_data["username"]
                 if user.username_exists():
-                    current_app.logger.error(f"User with username '{user.username}'already exists")
+                    current_app.logger.error(f"User with username '{user.username}' already exists")
                     abort(409, f"User with username '{user.username}'already exists")
 
         if "email" in js_data:
@@ -131,8 +131,7 @@ class UserManagement(Resource):
 
         if "password" in js_data:
             bcrypt = current_app.config["flask_bcrypt"]
-            js_data["password"] = bcrypt.generate_password_hash(js_data["password"])
-            js_data["password"] = js_data["password"].decode("utf-8")
+            js_data["password"] = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
             user_current_password_hash = user.get_password_hash()
             if bcrypt.check_password_hash(user_current_password_hash.encode("utf-8"), js_data["password"]):
                 js_data.pop("password")
