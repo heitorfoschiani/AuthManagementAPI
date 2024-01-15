@@ -23,6 +23,6 @@ def create_app(config_class=Config):
     api.init_app(app)
 
     name_spaces = [ns_user, ns_privilege]
-    list(map(api.add_namespace, name_spaces))
+    list(api.add_namespace(name_space) for name_space in name_spaces)
     
     return app
