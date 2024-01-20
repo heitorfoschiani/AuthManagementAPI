@@ -55,7 +55,12 @@ class UserManagement(Resource):
 
         bcrypt = current_app.config["flask_bcrypt"]
         hashed_password = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
-        user.register(hashed_password)
+        
+        try:
+            user.register(hashed_password)
+        except Exception as e:
+            current_app.logger.error(f"An error occorred when register user: {e}")
+            abort(500, "An error occorred when register user")
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
@@ -89,6 +94,9 @@ class UserManagement(Resource):
         js_data = ns_user.payload
 
         user_id = js_data.get("id")
+        if not user_id:
+            current_app.logger.error("The user id is required")
+            abort(400, "The user id is required")
 
         user = User.get({
             "user_id": user_id

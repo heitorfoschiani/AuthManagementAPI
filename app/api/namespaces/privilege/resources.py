@@ -2,7 +2,6 @@ from flask import abort, current_app
 from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, current_user
 
-from app.database .dbconnection import connect_to_postgres
 from app.api.auth import require_privileges
 from app.logs import log_request_headers_information, log_request_body_information
 from app.api.namespaces.user import User
@@ -34,31 +33,11 @@ class PrivilegeManagement(Resource):
     @log_request_headers_information
     @log_request_body_information
     def get(self):
-        conn = connect_to_postgres()
-        cursor = conn.cursor()
-
         try:
-            cursor.execute("""
-                SELECT 
-                    userprivileges.privilege,
-                    usernames.username
-                FROM userprivileges
-                LEFT JOIN useraccess ON userprivileges.id = useraccess.privilege_id AND useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid')
-                LEFT JOIN usernames ON useraccess.user_id = usernames.user_id AND usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid')
-                ORDER BY userprivileges.privilege;
-            """)
-            user_privileges = cursor.fetchall()
+            dict_user_privileges = Privilege.get_user_privileges()
         except Exception as e:
             current_app.logger.error(f"An error occurred when get userprivilege: {e}")
             abort(500, "An error occurred when get userprivilege")
-        finally:
-            conn.close()
-        
-        dict_user_privileges = {}
-        for row in user_privileges:
-            if not row[0] in dict_user_privileges:
-                dict_user_privileges[row[0]] = []
-            dict_user_privileges[row[0]].append(row[1])
 
         return dict_user_privileges
 
