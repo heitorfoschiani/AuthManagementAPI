@@ -1,6 +1,6 @@
-# Importing libraries
 import psycopg2
 from sqlalchemy import create_engine
+
 
 with open("C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postges_connection_information.txt") as f:
     lines = f.readlines()
@@ -30,5 +30,3 @@ def connect_to_postgres(connection_type="connection", host=dbhost, port=dbport, 
         engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}")
 
         return engine
-    
-    
