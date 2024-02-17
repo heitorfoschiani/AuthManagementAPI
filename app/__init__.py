@@ -9,8 +9,8 @@ from .logs import configure_logging
 from .database import initialize_database
 from .extensions import configure_extensions
 from .api import api
-from .api.namespaces.user.resources import ns_user
-from .api.namespaces.privilege.resources import ns_privilege
+from .api.blueprints.user.resources import user_namespace
+from .api.blueprints.privilege.resources import privilege_namespace
 
 
 def create_app(config_class=Config):
@@ -23,7 +23,7 @@ def create_app(config_class=Config):
     
     api.init_app(app)
 
-    name_spaces = [ns_user, ns_privilege]
+    name_spaces = [user_namespace, privilege_namespace]
     list(api.add_namespace(name_space) for name_space in name_spaces)
     
     return app

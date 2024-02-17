@@ -3,19 +3,19 @@ from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
 
 from app.logs import log_request_headers_information, log_request_body_information
-from app.api.namespaces.user import User
+from app.api.blueprints.user import User
 from .models import user_model, register_user_model, edit_user_model, authenticate_user_model
 from .parse import user_id_parse, username_parse
 
 
-ns_user = Namespace(
+user_namespace = Namespace(
     "user", 
 )
 
 
-@ns_user.route("/")
+@user_namespace.route("/")
 class UserManagement(Resource):
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             The post method of this end-point registers a new user into the server.
             On success, returns the user's ID and the access tokens.
@@ -27,10 +27,10 @@ class UserManagement(Resource):
             500: "Internal server error"
         }
     )
-    @ns_user.expect(register_user_model)
+    @user_namespace.expect(register_user_model)
     @log_request_headers_information
     def post(self):
-        js_data = ns_user.payload
+        js_data = user_namespace.payload
 
         required_fields = ["full_name", "username", "email", "password"]
         for field in required_fields:
@@ -73,7 +73,7 @@ class UserManagement(Resource):
 
         return user_access_information, 201
     
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             The put method of this end-point edit an existing user's information by user_id. 
             Only users with 'administrator' or 'manager' privileges might update information of another user.
@@ -86,12 +86,12 @@ class UserManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @ns_user.marshal_with(user_model)
-    @ns_user.expect(edit_user_model)
+    @user_namespace.marshal_with(user_model)
+    @user_namespace.expect(edit_user_model)
     @jwt_required()
     @log_request_headers_information
     def put(self):
-        js_data = ns_user.payload
+        js_data = user_namespace.payload
 
         user_id = js_data.get("id")
         if not user_id:
@@ -152,7 +152,7 @@ class UserManagement(Resource):
 
         return user
 
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             The delete method of this end-point inactivate an user by user_id. 
             Only users with 'administrator' or 'manager' privileges can inactivate another user.
@@ -166,7 +166,7 @@ class UserManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @ns_user.expect(user_id_parse)
+    @user_namespace.expect(user_id_parse)
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
@@ -212,7 +212,7 @@ class UserManagement(Resource):
 
         return user_privilege_information
 
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             The get method of this end-point returns user information based on the provided access token, user_id, or username. 
             Only 'administrator' or 'manager' users, or the user themself, can access information.
@@ -226,8 +226,8 @@ class UserManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @ns_user.marshal_with(user_model)
-    @ns_user.expect(user_id_parse, username_parse)
+    @user_namespace.marshal_with(user_model)
+    @user_namespace.expect(user_id_parse, username_parse)
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
@@ -271,9 +271,9 @@ class UserManagement(Resource):
         return user
 
 
-@ns_user.route("/authenticate")
+@user_namespace.route("/authenticate")
 class Authenticate(Resource):
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             This end-point authenticates a user with username and password, and returns access and refresh tokens upon successful authentication.
         """,
@@ -284,10 +284,10 @@ class Authenticate(Resource):
             500: "Internal server error"
         }
     )
-    @ns_user.expect(authenticate_user_model)
+    @user_namespace.expect(authenticate_user_model)
     @log_request_headers_information
     def post(self):
-        js_data = ns_user.payload
+        js_data = user_namespace.payload
 
         username = js_data.get("username").lower()
 
@@ -298,7 +298,7 @@ class Authenticate(Resource):
         
         user_password_hash = user.get_password_hash()
         bcrypt = current_app.config["flask_bcrypt"]
-        if not bcrypt.check_password_hash(user_password_hash.encode("utf-8"), ns_user.payload.get("password")):
+        if not bcrypt.check_password_hash(user_password_hash.encode("utf-8"), user_namespace.payload.get("password")):
             current_app.logger.error("Incorrect password")
             abort(401, "Incorrect password")
 
@@ -314,9 +314,9 @@ class Authenticate(Resource):
         return access_user_information
 
 
-@ns_user.route("/refresh-authentication")
+@user_namespace.route("/refresh-authentication")
 class RefreshAuthentication(Resource):
-    @ns_user.doc(
+    @user_namespace.doc(
         description="""
             This end-point generates a new access token for the authenticated user using a valid refresh token.
         """,

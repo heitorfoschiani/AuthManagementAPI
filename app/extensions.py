@@ -2,7 +2,7 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 
-from .api.namespaces.user import User
+from .api.blueprints.user import User
 
 
 def configure_extensions(app):

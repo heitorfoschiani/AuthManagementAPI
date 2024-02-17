@@ -6,7 +6,7 @@ from .dbmanagement.dbuser.userphones_table import *
 from .dbmanagement.dbuser.userpasswords_table import *
 from .dbmanagement.dbuser.userprivileges_table import *
 from .dbmanagement.dbuser.useraccess_table import *
-from app.api.namespaces.privilege import Privilege
+from app.api.blueprints.privilege import Privilege
 
 
 def initialize_database():

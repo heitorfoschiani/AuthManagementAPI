@@ -4,19 +4,19 @@ from flask_jwt_extended import jwt_required, current_user
 
 from app.auth import require_privileges
 from app.logs import log_request_headers_information, log_request_body_information
-from app.api.namespaces.user import User
-from app.api.namespaces.privilege import Privilege
+from app.api.blueprints.user import User
+from app.api.blueprints.privilege import Privilege
 from .models import privilege_model
 
 
-ns_privilege = Namespace(
+privilege_namespace = Namespace(
     "privilege", 
 )
 
 
-@ns_privilege.route("/privileges")
+@privilege_namespace.route("/privileges")
 class PrivilegeManagement(Resource):
-    @ns_privilege.doc(
+    @privilege_namespace.doc(
         description="""
             The get method of this end-point returns the privilege types existent into the server and their username owners
         """,
@@ -27,7 +27,7 @@ class PrivilegeManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @ns_privilege.doc()
+    @privilege_namespace.doc()
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
@@ -42,10 +42,10 @@ class PrivilegeManagement(Resource):
         return dict_user_privileges
 
 
-@ns_privilege.route("/user-privilege/<int:user_id>")
-@ns_privilege.doc(params={"user_id": "The user id into the server."})
+@privilege_namespace.route("/user-privilege/<int:user_id>")
+@privilege_namespace.doc(params={"user_id": "The user id into the server."})
 class UserPrivilege(Resource):
-    @ns_privilege.doc(
+    @privilege_namespace.doc(
         description="""
             The post method of this end-point set a privilege to the user.
             Only users with 'administrator' or 'manager' privileges can set a privilege to another user.
@@ -62,13 +62,13 @@ class UserPrivilege(Resource):
         },
         security="jsonWebToken"
     )
-    @ns_privilege.expect(privilege_model)
+    @privilege_namespace.expect(privilege_model)
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
     @log_request_body_information
     def post(self, user_id):
-        js_data = ns_privilege.payload
+        js_data = privilege_namespace.payload
 
         privilege_name = js_data["privilege"].lower()
         try:
@@ -115,7 +115,7 @@ class UserPrivilege(Resource):
 
         return user_privileges
     
-    @ns_privilege.doc(
+    @privilege_namespace.doc(
         description="""
             The delete method of this end-point remove a privilege of an user
             Only users with 'administrator' or 'manager' privileges might remove a privilege of a user.
@@ -132,13 +132,13 @@ class UserPrivilege(Resource):
         }, 
         security="jsonWebToken"
     )
-    @ns_privilege.expect(privilege_model)
+    @privilege_namespace.expect(privilege_model)
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
     @log_request_body_information
     def delete(self, user_id):
-        privilege_name = ns_privilege.payload.get("privilege").lower()
+        privilege_name = privilege_namespace.payload.get("privilege").lower()
         privilege = Privilege.get_privilege(privilege_name)
         if not privilege:
             current_app.logger.error(f"Non-existing privilege")
@@ -189,7 +189,7 @@ class UserPrivilege(Resource):
 
         return user_privileges
                 
-    @ns_privilege.doc(
+    @privilege_namespace.doc(
         description="""
             The get method of this end-point returns the privileges of an user.
         """,
