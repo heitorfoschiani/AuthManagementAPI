@@ -20,6 +20,7 @@ def create_app(config_class=Config):
     configure_logging()
     initialize_database()
     configure_extensions(app)
+    
     api.init_app(app)
 
     name_spaces = [ns_user, ns_privilege]

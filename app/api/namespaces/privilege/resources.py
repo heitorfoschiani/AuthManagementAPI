@@ -2,7 +2,7 @@ from flask import abort, current_app
 from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, current_user
 
-from app.api.auth import require_privileges
+from app.auth import require_privileges
 from app.logs import log_request_headers_information, log_request_body_information
 from app.api.namespaces.user import User
 from app.api.namespaces.privilege import Privilege

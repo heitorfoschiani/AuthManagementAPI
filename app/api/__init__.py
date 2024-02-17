@@ -1,6 +1,6 @@
 from flask_restx import Api
 
-from .auth import authorizations
+from app.auth import authorizations
 
 
 api = Api(
