@@ -2,7 +2,7 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 
-from .api.blueprints.user import User
+from .api.blueprints.auth_management.user import User
 
 
 def configure_extensions(app):
@@ -23,4 +23,5 @@ def configure_extensions(app):
     
     app.config["jwt"] = jwt
     app.config["flask_bcrypt"] = Bcrypt(app)
+    
     CORS(app)

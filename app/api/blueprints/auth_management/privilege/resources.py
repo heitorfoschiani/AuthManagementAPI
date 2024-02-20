@@ -4,8 +4,8 @@ from flask_jwt_extended import jwt_required, current_user
 
 from app.auth import require_privileges
 from app.logs import log_request_headers_information, log_request_body_information
-from app.api.blueprints.user import User
-from app.api.blueprints.privilege import Privilege
+from app.api.blueprints.auth_management.user import User
+from app.api.blueprints.auth_management.privilege import Privilege
 from .models import privilege_model
 
 
@@ -27,7 +27,6 @@ class PrivilegeManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @privilege_namespace.doc()
     @jwt_required()
     @require_privileges("administrator", "manager")
     @log_request_headers_information
@@ -228,3 +227,4 @@ class UserPrivilege(Resource):
         }
 
         return user_privileges
+    

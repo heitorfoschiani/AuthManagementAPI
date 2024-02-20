@@ -8,9 +8,8 @@ from .config import Config
 from .logs import configure_logging
 from .database import initialize_database
 from .extensions import configure_extensions
-from .api import api
-from .api.blueprints.user.resources import user_namespace
-from .api.blueprints.privilege.resources import privilege_namespace
+from .api.blueprints.auth_management import auth_management_api, auth_management_blueprint
+from .api.blueprints import register_auth_management
 
 
 def create_app(config_class=Config):
@@ -20,10 +19,11 @@ def create_app(config_class=Config):
     configure_logging()
     initialize_database()
     configure_extensions(app)
-    
-    api.init_app(app)
 
-    name_spaces = [user_namespace, privilege_namespace]
-    list(api.add_namespace(name_space) for name_space in name_spaces)
+    register_auth_management(
+        app=app,
+        api=auth_management_api, 
+        blueprint=auth_management_blueprint
+    )
     
     return app
