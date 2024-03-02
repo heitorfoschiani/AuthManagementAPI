@@ -2,8 +2,8 @@ from flask import Flask, Blueprint
 from flask_restx import Api
 
 from app.api.blueprints import add_blueprint
-from .user.resources import user_namespace
-from .privilege.resources import privilege_namespace
+from .namespaces.user.resources import user_namespace
+from .namespaces.privilege.resources import privilege_namespace
 from . import auth_management_api, auth_management_blueprint
 
 

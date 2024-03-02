@@ -3,7 +3,7 @@ from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, current_user
 
 from app.logs import log_request_headers_information, log_request_body_information
-from app.api.blueprints.auth_management.user import User
+from app.api.blueprints.auth_management.namespaces.user import User
 from .models import user_model, register_user_model, edit_user_model, authenticate_user_model
 from .parse import user_id_parse, username_parse
 
