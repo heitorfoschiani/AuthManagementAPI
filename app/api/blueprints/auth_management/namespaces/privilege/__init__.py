@@ -1,4 +1,4 @@
-from app.database .dbconnection import connect_to_postgres
+from app.database.connection import connect_to_postgres
 
 
 class Privilege:
@@ -11,13 +11,13 @@ class Privilege:
 
         try:
             cursor.execute("""
-                SELECT privilege FROM userprivileges
+                SELECT privilege FROM fkuserprivileges
                 WHERE privilege = %s
             """, (self.name,))
 
             if not cursor.fetchone():
                 cursor.execute("""
-                    INSERT INTO userprivileges (privilege)
+                    INSERT INTO fkuserprivileges (privilege)
                     VALUES (%s);
                 """, (self.name,))
                 conn.commit()
@@ -33,7 +33,7 @@ class Privilege:
         
         try:
             cursor.execute("""
-                SELECT privilege FROM userprivileges 
+                SELECT privilege FROM fkuserprivileges 
                 WHERE privilege = %s;
             """, (privilege_name,)
             )
@@ -57,12 +57,12 @@ class Privilege:
         try:
             cursor.execute("""
                 SELECT 
-                    userprivileges.privilege,
+                    fkuserprivileges.privilege,
                     usernames.username
-                FROM userprivileges
-                LEFT JOIN useraccess ON userprivileges.id = useraccess.privilege_id AND useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid')
+                FROM fkuserprivileges
+                LEFT JOIN useraccess ON fkuserprivileges.id = useraccess.privilege_id AND useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid')
                 LEFT JOIN usernames ON useraccess.user_id = usernames.user_id AND usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid')
-                ORDER BY userprivileges.privilege;
+                ORDER BY fkuserprivileges.privilege;
             """)
             user_privileges = cursor.fetchall()
         except Exception as e:

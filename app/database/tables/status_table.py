@@ -1,24 +1,22 @@
-from app.database .dbconnection import connect_to_postgres
+from app.database.creation import PostgresTableCreator
+from app.database.connection import connect_to_postgres
 
 
 def create_table_fkstatus():
-    # This function creates the "fkstatus" table into the database
+    """
+    This function creates 'status' table into the database
+    """
 
-    conn = connect_to_postgres()
-    cursor = conn.cursor()
+    table_columns = [
+        ("status", "VARCHAR(255)"), 
+    ]
 
-    try:
-        cursor.execute("""
-            CREATE TABLE fkstatus (
-                id SERIAL PRIMARY KEY, 
-                status VARCHAR(255)
-            );
-        """)
-        conn.commit()
-    except Exception as e:
-        raise Exception(f"Unable to create table 'fkstatus': {e}")
-    finally:
-        conn.close()
+    postgres_table_creator = PostgresTableCreator(
+        table_name="fkstatus"
+    )
+
+    postgres_table_creator.create_table(table_columns, foreign_key=True)
+
 
 def add_status(status):
     # This function add a new privilege into the "fkstatus" table

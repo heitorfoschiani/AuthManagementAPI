@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 
-from app.database.dbconnection import connect_to_postgres
+from app.database.connection import connect_to_postgres
 
 
 class User:
@@ -18,7 +18,7 @@ class User:
 
         try:
             cursor.execute("""
-                INSERT INTO users (full_name)
+                INSERT INTO fkusers (full_name)
                 VALUES (%s) 
                 RETURNING id;
             """, (self.full_name,))
@@ -64,7 +64,7 @@ class User:
             if "email" in update_information:
                 cursor.execute("""
                     UPDATE useremails
-                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                     WHERE 
                         status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         user_id = %s;
@@ -80,7 +80,7 @@ class User:
             if "phone" in update_information:
                 cursor.execute("""
                     UPDATE userphones
-                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                     WHERE 
                         status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         user_id = %s;
@@ -96,7 +96,7 @@ class User:
             if "username" in update_information:
                 cursor.execute("""
                     UPDATE usernames
-                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                     WHERE 
                         status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         user_id = %s;
@@ -112,7 +112,7 @@ class User:
             if "password" in update_information:
                 cursor.execute("""
                     UPDATE userpasswords
-                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                     WHERE 
                         status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         user_id = %s;
@@ -135,7 +135,7 @@ class User:
 
         try:
             cursor.execute("""
-                SELECT id FROM userprivileges
+                SELECT id FROM fkuserprivileges
                 WHERE privilege = 'inactive';
             """)
             fetch = cursor.fetchone()
@@ -146,7 +146,7 @@ class User:
 
             cursor.execute("""
                 UPDATE useraccess
-                    SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                    SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                 WHERE
                     status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                     user_id = %s;
@@ -169,7 +169,7 @@ class User:
 
         try:
             cursor.execute("""
-                SELECT id FROM userprivileges
+                SELECT id FROM fkuserprivileges
                 WHERE privilege = %s;
             """, (privilege,))
             fetch = cursor.fetchone()
@@ -181,9 +181,9 @@ class User:
             if privilege == "basic":
                 cursor.execute("""
                     UPDATE useraccess
-                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                        SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                     WHERE 
-                        privilege_id = (SELECT id FROM userprivileges WHERE privilege = 'inactive') AND 
+                        privilege_id = (SELECT id FROM fkuserprivileges WHERE privilege = 'inactive') AND 
                         status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         user_id = %s;
                 """, (datetime.now(), self.id))
@@ -205,9 +205,9 @@ class User:
         try:
             cursor.execute("""
                 UPDATE useraccess
-                    SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), update_datetime = %s
+                    SET status_id = (SELECT id FROM fkstatus WHERE status = 'invalid'), status_update_datetime = %s
                 WHERE 
-                    privilege_id = (SELECT id FROM userprivileges WHERE privilege = %s) AND 
+                    privilege_id = (SELECT id FROM fkuserprivileges WHERE privilege = %s) AND 
                     status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                     user_id = %s;
             """, (datetime.now(), privilege, self.id))
@@ -223,8 +223,8 @@ class User:
 
         try:
             cursor.execute("""
-                SELECT userprivileges.privilege FROM useraccess
-                INNER JOIN userprivileges ON useraccess.privilege_id = userprivileges.id
+                SELECT fkuserprivileges.privilege FROM useraccess
+                INNER JOIN fkuserprivileges ON useraccess.privilege_id = fkuserprivileges.id
                 WHERE 
                     useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
                     useraccess.user_id = %s;
@@ -263,7 +263,7 @@ class User:
         conn = connect_to_postgres()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT full_name FROM users WHERE full_name = %s;
+            SELECT full_name FROM fkusers WHERE full_name = %s;
         """, (self.full_name,))
         fetch = cursor.fetchone()
         conn.close()
@@ -314,35 +314,35 @@ class User:
             if "user_id" in user_information:
                 cursor.execute("""
                     SELECT 
-                        users.id,
-                        users.full_name,
+                        fkusers.id,
+                        fkusers.full_name,
                         useremails.email,
                         userphones.phone,
                         usernames.username
-                    FROM users
-                    LEFT JOIN useremails ON useremails.user_id = users.id
-                    LEFT JOIN userphones ON userphones.user_id = users.id
-                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    FROM fkusers
+                    LEFT JOIN useremails ON useremails.user_id = fkusers.id
+                    LEFT JOIN userphones ON userphones.user_id = fkusers.id
+                    LEFT JOIN usernames ON usernames.user_id = fkusers.id
                     WHERE 
                         useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
                         userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
                         usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                        users.id = %s;
+                        fkusers.id = %s;
                 """, 
                 (user_information["user_id"],))
                 user_data = cursor.fetchone()
             elif "username" in user_information:
                 cursor.execute("""
                     SELECT 
-                        users.id,
-                        users.full_name,
+                        fkusers.id,
+                        fkusers.full_name,
                         useremails.email,
                         userphones.phone,
                         usernames.username
-                    FROM users
-                    LEFT JOIN useremails ON useremails.user_id = users.id
-                    LEFT JOIN userphones ON userphones.user_id = users.id
-                    LEFT JOIN usernames ON usernames.user_id = users.id
+                    FROM fkusers
+                    LEFT JOIN useremails ON useremails.user_id = fkusers.id
+                    LEFT JOIN userphones ON userphones.user_id = fkusers.id
+                    LEFT JOIN usernames ON usernames.user_id = fkusers.id
                     WHERE 
                         useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
                         userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND

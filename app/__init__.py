@@ -15,9 +15,9 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
     
+    configure_extensions(app)
     configure_logging()
     initialize_database()
-    configure_extensions(app)
 
     register_auth_management_blueprint(app)
     
