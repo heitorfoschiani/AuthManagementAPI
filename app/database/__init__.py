@@ -1,4 +1,4 @@
-from .tables.status_table import create_table_fkstatus, add_status
+from .tables.fkstatus import create_table_fkstatus, add_status
 
 
 def initialize_database():

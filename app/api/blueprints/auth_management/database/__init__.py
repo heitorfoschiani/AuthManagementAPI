@@ -1,10 +1,10 @@
-from .tables.users_table import create_table_fkusers
-from .tables.userprivileges_table import create_table_fkuserprivileges
-from .tables.useraccess_table import create_table_useraccess
-from .tables.useremails_table import create_table_useremails
-from .tables.usernames_table import create_table_usernames
-from .tables.userpasswords_table import create_table_userpasswords
-from .tables.userphones_table import create_table_userphones
+from .tables.fkusers import create_table_fkusers
+from .tables.fkuserprivileges import create_table_fkuserprivileges
+from .tables.useraccess import create_table_useraccess
+from .tables.useremails import create_table_useremails
+from .tables.usernames import create_table_usernames
+from .tables.userpasswords import create_table_userpasswords
+from .tables.userphones import create_table_userphones
 from app.api.blueprints.auth_management.namespaces.privilege import Privilege
 
 
