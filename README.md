@@ -21,7 +21,7 @@ Ensure you have the following installed:
 ### Installation
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/APIAuthenticationManagement.git
+git clone https://github.com/heitorfoschiani/APIAuthenticationManagement.git
 ```
 
 2. Install the required packages (It is recommended that it be carried out within a virtual environment):
