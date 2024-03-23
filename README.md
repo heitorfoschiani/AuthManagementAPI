@@ -43,12 +43,11 @@ flask run
 ```bash
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5001
- * Running on http://192.168.11.12:5001
 ```
 
 2. Confirm that tables were created in the database.
 
-3. Access the Swagger documentation at http://192.168.11.12:5001/auth-management
+3. Access the Swagger documentation at http://127.0.0.1:5001/auth-management
 
 4. Create the first user in the application by making a request:
 ```
