@@ -20,53 +20,85 @@ Ensure you have the following installed:
 
 ### Installation
 1. Clone the repository:
-```bash
-git clone https://github.com/heitorfoschiani/APIAuthenticationManagement.git
-```
+    ```bash
+    git clone https://github.com/heitorfoschiani/APIAuthenticationManagement.git
+    ```
 
 2. Install the required packages (It is recommended that it be carried out within a virtual environment):
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 ### Configure PostgreSQL database
 - Create a database called "AuthenticationManagement" or, if you want to connect with another database, you might change the variable "dbname" on "APIAuthenticationManagement -> app -> database -> connection.py"
 
 ### Initialize the app
 1. Run at prompt:
-```bash
-flask run
-```
+    ```bash
+    flask run
+    ```
 
 ### Test the application
 1. Verify the prompt output:
-```bash
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5001
-```
+    ```bash
+    * Running on all addresses (0.0.0.0)
+    * Running on http://127.0.0.1:5001
+    ```
 
 2. Confirm that tables were created in the database.
 
 3. Access the Swagger documentation at http://127.0.0.1:5001/auth-management
 
 4. Create the first user in the application by making a request:
-```
-import requests
+    ```
+    import requests
+    
+    response = requests.post(
+        f"http://127.0.0.1:5001/auth-management/user",
+        headers = {
+            "Content-type": "application/json"
+        },
+        json = {
+          "full_name": "Bruce Wayne",
+          "email": "bruce.wayne@outlook.com",
+          "phone": "11912345678",
+          "username": "batman",
+          "password": "ImBatman",
+        },
+    )
+    ```
 
-response = requests.post(
-    f"http://127.0.0.1:5001/auth-management/user",
-    headers = {
-        "Content-type": "application/json"
-    },
-    json = {
-      "full_name": "Bruce Wayne",
-      "email": "bruce.wayne@outlook.com",
-      "phone": "11912345678",
-      "username": "batman",
-      "password": "ImBatman",
-    },
-)
-```
+## Starting a project on top of this
+1. Make sure you have knowledge about Flask and Flask-RESTX;
+2. Create a new blueprint folder on "APIAuthenticationManagement -> app -> api -> blueprints";
+3. Following the existing bluepirint structure "auth_management", create the same folders and files:
+    ```
+    your_blueprint/
+    ├── database/
+    |    ├── tables/
+    |    |    ├── your_table.py
+    |    |
+    |    ├── __init__.py
+    |
+    ├── namespaces/
+    |    ├── your_namespace1/
+    |    |    ├── __init__.py
+    |    |    ├── models.py
+    |    |    ├── parse.py
+    |    |    ├── resources.py
+    |    |
+    |    ├── __init__.py
+    |
+    |    ├── your_namespace12/
+    |    |    ├── __init__.py
+    |    |    ├── models.py
+    |    |    ├── parse.py
+    |    |    ├── resources.py
+    |
+    |── __init__.py
+    |── register.py
+    ```
+4. Use your knowlege aboud Flask-RESTX and this project construction to crerate a new feature for your API
 
 ## Contact
 For any questions, please contact-me: heitor.foschiani@outlook.com
