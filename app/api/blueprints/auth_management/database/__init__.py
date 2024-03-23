@@ -1,5 +1,5 @@
-from .tables.users import create_table_fkusers
-from .tables.userprivileges import create_table_fkuserprivileges
+from .tables.fkusers import create_table_fkusers
+from .tables.fkuserprivileges import create_table_fkuserprivileges
 from .tables.useraccess import create_table_useraccess
 from .tables.useremails import create_table_useremails
 from .tables.usernames import create_table_usernames
