@@ -1,7 +1,3 @@
-# Author: Heitor Foschiani de Souza
-# Email: heitor.foschiani@outlook.com
-# Phone-number: (11) 9 4825-3334
-
 from flask import Flask
 
 from .config import Config
