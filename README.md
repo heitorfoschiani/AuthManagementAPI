@@ -1,4 +1,6 @@
 # API Authentication Management
+[![NPM](https://img.shields.io/npm/l/react)](https://github.com/devsuperior/sds1-wmazoni/blob/master/LICENSE)
+
 A secure Flask API that requires user authentication and manages access.
 
 ## About The Project
