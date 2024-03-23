@@ -29,10 +29,45 @@ git clone https://github.com/yourusername/APIAuthenticationManagement.git
 pip install -r requirements.txt
 ```
 
-## Start PostgreSQL database
+### Configure PostgreSQL database
 - Create a database called "AuthenticationManagement" or, if you want to connect with another database, you might change the variable "dbname" on "APIAuthenticationManagement -> app -> database -> connection.py"
 
-# Star Project
+### Initialize the app
 1. Run at prompt:
 ```bash
 flask run
+```
+
+### Test the application
+1. Verify the prompt output:
+```bash
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.11.12:5001
+```
+
+2. Confirm that tables were created in the database.
+
+3. Access the Swagger documentation at http://192.168.11.12:5001/auth-management
+
+4. Create the first user in the application by making a request:
+```
+import requests
+
+response = requests.post(
+    f"http://127.0.0.1:5001/auth-management/user",
+    headers = {
+        "Content-type": "application/json"
+    },
+    json = {
+      "full_name": "Bruce Wayne",
+      "email": "bruce.wayne@outlook.com",
+      "phone": "11912345678",
+      "username": "batman",
+      "password": "ImBatman",
+    },
+)
+```
+
+## Contact
+For any questions, please contact-me: heitor.foschiani@outlook.com
