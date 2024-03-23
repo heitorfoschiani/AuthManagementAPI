@@ -68,7 +68,7 @@ Ensure you have the following installed:
     )
     ```
 
-## Starting a project on top of this
+## Starting a new project on top of this
 1. Make sure you have knowledge about Flask and Flask-RESTX;
 
 2. Create a new blueprint folder on "APIAuthenticationManagement -> app -> api -> blueprints";
@@ -100,7 +100,7 @@ Ensure you have the following installed:
     |── __init__.py
     |── register.py
     ```
-    
+
 4. Use your knowlege aboud Flask-RESTX and this project construction to crerate a new feature for your API
 
 ## Contact
