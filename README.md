@@ -4,7 +4,7 @@ A secure Flask API that requires user authentication and manages access
 ## About The Project
 This project leverages Flask, Flask-RESTX, and Flask-JWT-Extended functionality to deliver an object-oriented Python solution that effectively manages user sessions and endpoint access permissions. It provides a robust foundation for any other Flask API project, offering, in addition to strong access control, database table creation on project initialization, a straightforward structure for PostgreSQL connections, and log storage for all endpoint requests. With decorators already developed for these features, integrating them into any other endpoint developed from this foundation is streamlined and efficient.
 
-## Kwy Features
+## Key Features
 - **User Authentication:** Implements secure session management using JSON Web Tokens (JWT), ensuring safe user authentication processes.
 - **Access Control:** Manage access control by the user privileges.
 - **PostgreSQL Integratio:** Manages data through a PostgreSQL connection, offering a reliable and scalable database solution.
