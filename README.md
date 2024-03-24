@@ -78,6 +78,7 @@ Ensure you have the following installed:
 3. Following the existing bluepirint structure "auth_management", create the same folders and files:
     ```
     your_blueprint/
+    |
     ├── database/
     |    ├── tables/
     |    |    ├── your_table1.py
