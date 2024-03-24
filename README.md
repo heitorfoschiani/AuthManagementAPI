@@ -91,9 +91,7 @@ Ensure you have the following installed:
     |    |    ├── parse.py
     |    |    ├── resources.py
     |    |
-    |    ├── __init__.py
-    |
-    |    ├── your_namespace12/
+    |    ├── your_namespace2/
     |    |    ├── __init__.py
     |    |    ├── models.py
     |    |    ├── parse.py
