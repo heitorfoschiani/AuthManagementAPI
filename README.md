@@ -80,7 +80,8 @@ Ensure you have the following installed:
     your_blueprint/
     ├── database/
     |    ├── tables/
-    |    |    ├── your_table.py
+    |    |    ├── your_table1.py
+    |    |    ├── your_table2.py
     |    |
     |    ├── __init__.py
     |
