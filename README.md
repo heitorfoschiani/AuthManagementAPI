@@ -1,5 +1,5 @@
 # API Authentication Management
-[![NPM](https://img.shields.io/npm/l/react)](https://github.com/devsuperior/sds1-wmazoni/blob/master/LICENSE)
+[![NPM](https://img.shields.io/npm/l/react)](https://github.com/heitorfoschiani/APIAuthenticationManagement/blob/main/LICENSE)
 
 A secure Flask API that requires user authentication and manages access.
 
@@ -9,7 +9,8 @@ This project leverages Flask, Flask-RESTX, and Flask-JWT-Extended functionality 
 ## Key Features
 - **User Authentication:** Implements secure session management using JSON Web Tokens (JWT), ensuring safe user authentication processes;
 - **Access Control:** Manage access control by the user privileges;
-- **PostgreSQL Integratio:** Manages data through a PostgreSQL connection, offering a reliable and scalable database solution;
+- **Security on acccess information:** Encrypts passwords in database storage and forces a rotation of the JWT token used to request endpoints;
+- **PostgreSQL Integration:** Manages data through a PostgreSQL connection, offering a reliable and scalable database solution;
 - **Log Storage:** Maintains comprehensive logs of all API requests.
 
 ## Getting Started
@@ -49,7 +50,7 @@ Ensure you have the following installed:
 
 2. Confirm that tables were created in the database.
 
-3. Access the Swagger documentation at http://127.0.0.1:5001/auth-management
+3. Access the swagger documentation at http://127.0.0.1:5001/auth-management
 
 4. Create the first user in the application by making a request:
     ```
