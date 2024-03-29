@@ -35,26 +35,53 @@ class UserManagement(Resource):
         required_fields = ["full_name", "username", "email", "password"]
         for field in required_fields:
             if field not in js_data:
+                current_app.logger.error(f"{field} is required")
                 abort(400, f"{field} is required")
+            if js_data[field] == "":
+                current_app.logger.error(f"{field} information can not be empty")
+                abort(400, f"{field} information can not be empty")
 
-        user = User(
-            id=0, 
-            full_name=js_data.get("full_name").lower(), 
-            username=js_data.get("username").lower(), 
-            email=js_data.get("email").lower(), 
-            phone=js_data.get("phone")
-        )
+        if "phone" in js_data:
+            if js_data["phone"] == "":
+                js_data["phone"] = None
+            elif not js_data["phone"].isnumeric():
+                current_app.logger.error(f"invalid phone: {js_data['phone']}")
+                abort(400, f"invalid phone: {js_data['phone']}")
 
-        if user.username_exists():
-            current_app.logger.error(f"User with username '{user.username}'already exists")
-            abort(409, f"User with username '{user.username}'already exists")
+        try:
+            user = User(
+                id=0, 
+                full_name=js_data.get("full_name").lower(), 
+                username=js_data.get("username").lower(), 
+                email=js_data.get("email").lower(), 
+                phone=js_data.get("phone")
+            )
+        except Exception as e:
+            current_app.logger.error(500, f"An error occorred when create user into the server: {e}")
+            abort(500, "An error occorred when create user into the server")
 
-        if user.email_exists():
-            current_app.logger.error(f"User with email '{user.email}' already exists")
-            abort(409, f"User with email '{user.email}' already exists")
+        try:
+            if user.full_name_exists():
+                current_app.logger.error(f"User with username '{user.full_name}'already exists")
+                abort(409, f"User with username '{user.full_name}'already exists")
 
-        bcrypt = current_app.config["flask_bcrypt"]
-        hashed_password = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
+            if user.username_exists():
+                current_app.logger.error(f"User with username '{user.username}'already exists")
+                abort(409, f"User with username '{user.username}'already exists")
+
+            if user.email_exists():
+                current_app.logger.error(f"User with email '{user.email}' already exists")
+                abort(409, f"User with email '{user.email}' already exists")
+        except Exception as e:
+            current_app.logger.error(500, f"An error occorred when check informations: {e}")
+            abort(500, "An error occorred when check informations")
+
+        try:
+            bcrypt = current_app.config["flask_bcrypt"]
+            hashed_password = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
+        except Exception as e:
+            current_app.logger.error(500, f"An error occorred when encrypt password: {e}")
+            abort(500, "An error occorred when encypt password")
         
         try:
             user.register(hashed_password)
@@ -62,8 +89,12 @@ class UserManagement(Resource):
             current_app.logger.error(f"An error occorred when register user: {e}")
             abort(500, "An error occorred when register user")
 
-        access_token = create_access_token(identity=user)
-        refresh_token = create_refresh_token(identity=user)
+        try:
+            access_token = create_access_token(identity=user)
+            refresh_token = create_refresh_token(identity=user)
+        except Exception as e:
+            current_app.logger.error(500, f"An error occorred when generates access tokens: {e}")
+            abort(500, "An error occorred when generates access tokens")
 
         user_access_information = {
             "id": user.id, 

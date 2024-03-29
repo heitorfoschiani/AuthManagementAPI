@@ -262,11 +262,17 @@ class User:
     def full_name_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT full_name FROM fkusers WHERE full_name = %s;
-        """, (self.full_name,))
-        fetch = cursor.fetchone()
-        conn.close()
+
+        try:
+            cursor.execute("""
+                SELECT full_name FROM fkusers WHERE full_name = %s;
+            """, (self.full_name,))
+            fetch = cursor.fetchone()
+        except:
+            raise Exception("Unable to check if full_name alredy exists")
+        finally:
+            conn.close()
+
         if not fetch:
             return False
 
@@ -275,14 +281,20 @@ class User:
     def username_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT username FROM usernames 
-            WHERE 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                username = %s;
-        """, (self.username,))
-        fetch = cursor.fetchone()
-        conn.close()
+
+        try:
+            cursor.execute("""
+                SELECT username FROM usernames 
+                WHERE 
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    username = %s;
+            """, (self.username,))
+            fetch = cursor.fetchone()
+        except:
+            raise Exception("Unable to check if username alredy exists")
+        finally:
+            conn.close()
+
         if not fetch:
             return False
 
@@ -291,15 +303,20 @@ class User:
     def email_exists(self):
         conn = connect_to_postgres()
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT email FROM useremails 
-            WHERE 
-                status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
-                email = %s;
-        """, 
-        (self.email,))
-        fetch = cursor.fetchone()
-        conn.close()
+
+        try:
+            cursor.execute("""
+                SELECT email FROM useremails 
+                WHERE 
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                    email = %s;
+            """, (self.email,))
+            fetch = cursor.fetchone()
+        except:
+            raise Exception("Unable to check if email alredy exists")
+        finally:
+            conn.close()
+
         if not fetch:
             return False
 
