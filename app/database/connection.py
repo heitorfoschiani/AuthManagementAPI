@@ -2,7 +2,8 @@ import psycopg2
 from sqlalchemy import create_engine
 
 
-with open("C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postgres_connection_information.txt") as f:
+db_connection_file_path = "C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postgres_connection_information.txt"
+with open(db_connection_file_path) as f:
     lines = f.readlines()
 
 dbhost = lines[0].strip()
@@ -13,7 +14,9 @@ dbname = "AuthenticationManagement"
 
 
 def connect_to_postgres(connection_type="connection", host=dbhost, port=dbport, dbname=dbname, user=dbuser, password=dbpassword):
-    # This function create a connection with a PostgreSQL database and return the connection or the engine, as informed into "connection_type"
+    """
+    This function create a connection with a PostgreSQL database and return the connection or the engine, as informed into "connection_type
+    """
 
     if connection_type == "connection":
         conn = psycopg2.connect(
