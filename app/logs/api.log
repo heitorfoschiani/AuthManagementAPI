@@ -1,0 +1,91 @@
+2024-04-27 12:53:28 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 12:53:28 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 12:53:28 - INFO -  * Restarting with stat
+2024-04-27 12:53:29 - WARNING -  * Debugger is active!
+2024-04-27 12:53:29 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 12:53:38 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:38] "[33mGET / HTTP/1.1[0m" 404 -
+2024-04-27 12:53:38 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:38] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-04-27 12:53:53 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:53] "[32mGET /auth-management HTTP/1.1[0m" 308 -
+2024-04-27 12:53:53 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:53] "GET /auth-management/ HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /swaggerui/swagger-ui-bundle.js HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /swaggerui/droid-sans.css HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /swaggerui/swagger-ui.css HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /swaggerui/swagger-ui-standalone-preset.js HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /auth-management/swagger.json HTTP/1.1" 200 -
+2024-04-27 12:53:54 - INFO - 192.168.15.3 - - [27/Apr/2024 12:53:54] "GET /swaggerui/favicon-32x32.png HTTP/1.1" 200 -
+2024-04-27 12:54:14 - INFO - Request Headers: Host: 192.168.15.3:5001
+Connection: keep-alive
+Content-Length: 52
+Accept: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Content-Type: application/json
+Origin: http://192.168.15.3:5001
+Referer: http://192.168.15.3:5001/auth-management/
+Accept-Encoding: gzip, deflate
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-04-27 12:54:14 - INFO - 192.168.15.3 - - [27/Apr/2024 12:54:14] "POST /auth-management/user/authenticate HTTP/1.1" 200 -
+2024-04-27 13:56:55 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 13:56:55 - INFO -  * Restarting with stat
+2024-04-27 13:56:56 - WARNING -  * Debugger is active!
+2024-04-27 13:56:56 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 13:57:04 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 13:57:04 - INFO -  * Restarting with stat
+2024-04-27 13:57:05 - WARNING -  * Debugger is active!
+2024-04-27 13:57:05 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 13:57:08 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 13:57:08 - INFO -  * Restarting with stat
+2024-04-27 13:57:08 - WARNING -  * Debugger is active!
+2024-04-27 13:57:08 - INFO -  * Debugger PIN: 426-560-012
+2024-04-27 13:57:11 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 13:57:11 - INFO -  * Restarting with stat
+2024-04-27 13:57:12 - WARNING -  * Debugger is active!
+2024-04-27 13:57:12 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 14:06:57 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 14:06:57 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 14:06:57 - INFO -  * Restarting with stat
+2024-04-27 14:06:59 - WARNING -  * Debugger is active!
+2024-04-27 14:06:59 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 14:52:13 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 14:52:13 - INFO -  * Restarting with stat
+2024-04-27 14:52:15 - WARNING -  * Debugger is active!
+2024-04-27 14:52:15 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:04:02 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 15:04:02 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 15:04:02 - INFO -  * Restarting with stat
+2024-04-27 15:04:04 - WARNING -  * Debugger is active!
+2024-04-27 15:04:04 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:04:15 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 15:04:15 - INFO -  * Restarting with stat
+2024-04-27 15:04:16 - WARNING -  * Debugger is active!
+2024-04-27 15:04:16 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:04:23 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 15:04:23 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 15:04:23 - INFO -  * Restarting with stat
+2024-04-27 15:04:24 - WARNING -  * Debugger is active!
+2024-04-27 15:04:24 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:04:32 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\connection.py', reloading
+2024-04-27 15:04:32 - INFO -  * Restarting with stat
+2024-04-27 15:04:33 - WARNING -  * Debugger is active!
+2024-04-27 15:04:33 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:06:17 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 15:06:17 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 15:06:17 - INFO -  * Restarting with stat
+2024-04-27 15:06:18 - WARNING -  * Debugger is active!
+2024-04-27 15:06:18 - INFO -  * Debugger PIN: 591-728-297

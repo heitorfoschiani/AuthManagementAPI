@@ -1,40 +1,35 @@
 import psycopg2
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 
-db_connection_file_path = "C:/Users/heito/OneDrive/Heitor/Projects/Database/local_postgres_connection_information.txt"
-with open(db_connection_file_path, "r") as file:
-    for line in file:
-        split_line = line.split("=")
-        if split_line[0] == "dbhost":
-            dbhost = split_line[1].strip()
-        elif split_line[0] == "dbport":
-            dbport = split_line[1].strip()
-        elif split_line[0] == "dbuser":
-            dbuser = split_line[1].strip()
-        elif split_line[0] == "dbpassword":
-            dbpassword = split_line[1].strip()
-            
-dbname = "AuthenticationManagement"
-
-
-def connect_to_postgres(connection_type="connection", host=dbhost, port=dbport, dbname=dbname, user=dbuser, password=dbpassword):
+def connect_to_postgres(connection_type="connection"):
     """
-    This function create a connection with a PostgreSQL database and return the connection or the engine, as informed into 'connection_type'
+    This function creates a connection with a PostgreSQL database and returns the connection or the engine, as specified in 'connection_type'.
     """
+
+    load_dotenv("app/database/credentials.env", override=True)
+    credentials_file_path = os.getenv("CREDENTIALS_FILE_PATH")
+    dbname = os.getenv("DBNAME")
+
+    load_dotenv(credentials_file_path, override=True)
+    dbhost = os.getenv('DBHOST')
+    dbport = os.getenv('DBPORT')
+    dbuser = os.getenv('DBUSER')
+    dbpassword = os.getenv('DBPASSWORD')
 
     if connection_type == "connection":
         conn = psycopg2.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
+            host=dbhost,
+            port=dbport,
+            user=dbuser,
+            password=dbpassword,
             dbname=dbname,
         )
-
         return conn
     
     elif connection_type == "engine":
-        engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}")
-
+        engine = create_engine(f"postgresql+psycopg2://{dbuser}:{dbpassword}@{dbhost}:{dbport}/{dbname}")
         return engine
+
