@@ -89,3 +89,21 @@ Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
 2024-04-27 15:06:17 - INFO -  * Restarting with stat
 2024-04-27 15:06:18 - WARNING -  * Debugger is active!
 2024-04-27 15:06:18 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:45:44 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 15:45:44 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 15:45:44 - INFO -  * Restarting with stat
+2024-04-27 15:45:45 - WARNING -  * Debugger is active!
+2024-04-27 15:45:45 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:52:19 - INFO -  * Detected change in 'C:\\Users\\heito\\OneDrive\\Heitor\\Projects\\AuthenticationManagement\\APIAuthenticationManagement\\app\\database\\creation.py', reloading
+2024-04-27 15:52:19 - INFO -  * Restarting with stat
+2024-04-27 15:52:20 - WARNING -  * Debugger is active!
+2024-04-27 15:52:20 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:55:02 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.15.3:5001
+2024-04-27 15:55:02 - INFO - [33mPress CTRL+C to quit[0m
+2024-04-27 15:55:02 - INFO -  * Restarting with stat

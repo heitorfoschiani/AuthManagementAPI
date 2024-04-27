@@ -1,4 +1,4 @@
-from .connection import connect_to_postgres
+from .connection import PostgresConnection
 
 
 class PostgresTableCreator:
@@ -22,7 +22,8 @@ class PostgresTableCreator:
         except Exception as e:
             raise Exception(f"Unable to get create table query: {e}")
         
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -63,7 +64,8 @@ class PostgresTableCreator:
         - bool: True or False for exists or not.        
         """
         
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -85,7 +87,8 @@ class PostgresTableCreator:
     
     @staticmethod
     def _get_valid_status_id():
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
         
         try:

@@ -1,5 +1,5 @@
 from app.database.creation import PostgresTableCreator
-from app.database.connection import connect_to_postgres
+from app.database.connection import PostgresConnection
 
 
 def create_table_fkstatus():
@@ -21,7 +21,8 @@ def create_table_fkstatus():
 def add_status(status):
     # This function add a new privilege into the "fkstatus" table
 
-    conn = connect_to_postgres()
+    postgres_connection = PostgresConnection()
+    conn = postgres_connection.connect()
     cursor = conn.cursor()
 
     try:

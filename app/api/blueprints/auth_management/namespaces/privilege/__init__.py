@@ -1,4 +1,4 @@
-from app.database.connection import connect_to_postgres
+from app.database.connection import PostgresConnection
 
 
 class Privilege:
@@ -6,7 +6,8 @@ class Privilege:
         self.name = name
 
     def register(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -28,7 +29,8 @@ class Privilege:
     
     @staticmethod
     def get_privilege(privilege_name: str):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
         
         try:
@@ -51,7 +53,8 @@ class Privilege:
     
     @staticmethod
     def get_user_privileges():
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:

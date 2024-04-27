@@ -1,7 +1,7 @@
 from typing import Optional
 from datetime import datetime
 
-from app.database.connection import connect_to_postgres
+from app.database.connection import PostgresConnection
 
 
 class User:
@@ -13,7 +13,8 @@ class User:
         self.phone = phone
 
     def register(self, password_hash: str):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -57,7 +58,8 @@ class User:
             self.set_privilege(privilege="basic")
     
     def update(self, update_information: dict):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -130,7 +132,8 @@ class User:
             conn.close()
     
     def inactivate(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -164,7 +167,8 @@ class User:
             conn.close()
 
     def set_privilege(self, privilege: str):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -199,7 +203,8 @@ class User:
             conn.close()
     
     def delete_privilege(self, privilege: str):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -218,7 +223,8 @@ class User:
             conn.close()
     
     def privileges(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -241,7 +247,8 @@ class User:
         return privileges_list
     
     def get_password_hash(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -260,7 +267,8 @@ class User:
         return user_password_hash
     
     def full_name_exists(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -279,7 +287,8 @@ class User:
         return True
 
     def username_exists(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -301,7 +310,8 @@ class User:
         return True
 
     def email_exists(self):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
@@ -324,7 +334,8 @@ class User:
     
     @staticmethod
     def get(user_information: dict):
-        conn = connect_to_postgres()
+        postgres_connection = PostgresConnection()
+        conn = postgres_connection.connect()
         cursor = conn.cursor()
 
         try:
