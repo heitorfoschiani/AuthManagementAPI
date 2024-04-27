@@ -1,7 +1,7 @@
 import psycopg2
+import sqlalchemy
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
 
 
 class PostgresConnection:
@@ -31,7 +31,7 @@ class PostgresConnection:
             return conn
         
         elif connection_type == "engine":
-            engine = create_engine(f"postgresql+psycopg2://{self.dbuser}:{self.dbpassword}@{self.dbhost}:{self.dbport}/{self.dbname}")
+            engine = sqlalchemy.create_engine(f"postgresql+psycopg2://{self.dbuser}:{self.dbpassword}@{self.dbhost}:{self.dbport}/{self.dbname}")
             return engine
         
     @staticmethod
