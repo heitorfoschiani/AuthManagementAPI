@@ -107,3 +107,51 @@ Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
  * Running on http://192.168.15.3:5001
 2024-04-27 15:55:02 - INFO - [33mPress CTRL+C to quit[0m
 2024-04-27 15:55:02 - INFO -  * Restarting with stat
+2024-04-27 15:55:04 - WARNING -  * Debugger is active!
+2024-04-27 15:55:04 - INFO -  * Debugger PIN: 591-728-297
+2024-04-27 15:55:06 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:06] "[33mGET / HTTP/1.1[0m" 404 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "[32mGET /auth-management HTTP/1.1[0m" 308 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /auth-management/ HTTP/1.1" 200 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /swaggerui/swagger-ui.css HTTP/1.1" 200 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /swaggerui/droid-sans.css HTTP/1.1" 200 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /swaggerui/swagger-ui-standalone-preset.js HTTP/1.1" 200 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /swaggerui/swagger-ui-bundle.js HTTP/1.1" 200 -
+2024-04-27 15:55:12 - INFO - 192.168.15.3 - - [27/Apr/2024 15:55:12] "GET /auth-management/swagger.json HTTP/1.1" 200 -
+2024-04-27 16:00:33 - INFO - Request Headers: Host: 192.168.15.3:5001
+Connection: keep-alive
+Content-Length: 52
+Accept: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Content-Type: application/json
+Origin: http://192.168.15.3:5001
+Referer: http://192.168.15.3:5001/auth-management/
+Accept-Encoding: gzip, deflate
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-04-27 16:00:34 - INFO - 192.168.15.3 - - [27/Apr/2024 16:00:34] "POST /auth-management/user/authenticate HTTP/1.1" 200 -
+2024-04-27 16:02:11 - INFO - Request Headers: Host: 192.168.15.3:5001
+Connection: keep-alive
+Content-Length: 0
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDI0NDQzNCwianRpIjoiYWQzYTc3OWQtYjM4YS00ZDFhLTkyY2ItOWNkOGM3MWE5NmE3IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOjEsIm5iZiI6MTcxNDI0NDQzNCwiZXhwIjoxNzE0MjY2MDM0fQ.hdP-56FLNB1iYgWHWM_1nFxE0tg99Y2YH8BU9iTVXXM
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Origin: http://192.168.15.3:5001
+Referer: http://192.168.15.3:5001/auth-management/
+Accept-Encoding: gzip, deflate
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-04-27 16:02:11 - INFO - 192.168.15.3 - - [27/Apr/2024 16:02:11] "POST /auth-management/user/refresh-authentication HTTP/1.1" 200 -
+2024-04-27 16:02:38 - INFO - 192.168.15.3 - - [27/Apr/2024 16:02:38] "[31m[1mGET /auth-management/user/ HTTP/1.1[0m" 422 -
+2024-04-27 16:03:02 - INFO - Request Headers: Host: 192.168.15.3:5001
+Connection: keep-alive
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcxNDI0NDQzNCwianRpIjoiMTQ5OTg0NTgtNjk2OC00ZWZmLWI2MjktOGEyYTkzZDI0YmJmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzE0MjQ0NDM0LCJleHAiOjE3MTQyNDgwMzR9.c8oqxBhLfF5wY8w9kgSE7l0fDO_y67dwdciBetMl97U
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Referer: http://192.168.15.3:5001/auth-management/
+Accept-Encoding: gzip, deflate
+Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
+
+
+2024-04-27 16:03:02 - INFO - 192.168.15.3 - - [27/Apr/2024 16:03:02] "GET /auth-management/user/ HTTP/1.1" 200 -

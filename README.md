@@ -33,14 +33,17 @@ Ensure you have the following installed:
     ```
 
 ### Configure PostgreSQL database
-1. To set up your PostgreSQL connection, first create a text file (.txt) and input your PostgreSQL connection details into it, as below. Then, go to the "APIAuthenticationManagement -> app -> database -> connection.py", and update the "db_connection_file_path" variable with the path to the .txt file you've saved on your computer.
+1. To set up your PostgreSQL connection, first create a .env file and input your PostgreSQL connection details into it, as below. 
     ```
-    localhost
-    5432
-    postgres
-    your_password123
+    DBHOST=localhost
+    DBPORT=5432
+    DBUSER=postgres
+    DBPASSWORD=your_password123
     ```
-2. Create a database called "AuthenticationManagement" or, if you want to connect with another database, you might change the variable "dbname" in "APIAuthenticationManagement -> app -> database -> connection.py"
+
+2. Then, go to the "APIAuthenticationManagement -> app -> database -> credential.env", and update the "CREDENTIALS_FILE_PATH" variable with the path to the .env file you've saved on your computer.
+
+3. Create a database called "AuthenticationManagement" on your postgres sever or, if you want to connect with another database, you can change the variable "DBNAME" in "APIAuthenticationManagement -> app -> database -> credential.env"
 
 ### Initialize the app
 1. Run at prompt:
