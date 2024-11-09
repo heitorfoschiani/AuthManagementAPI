@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 class PostgresConnection:
     def __init__(self):
-        credentials_file_path, dbname = self.load_connection_information()
-        dbhost, dbport, dbuser, dbpassword = self.load_connection_credentials(credentials_file_path)
+        credentials_file_path, dbname = self._load_connection_information()
+        dbhost, dbport, dbuser, dbpassword = self._load_connection_credentials(credentials_file_path)
 
         self.dbhost = dbhost
         self.dbport = dbport
@@ -35,14 +35,14 @@ class PostgresConnection:
             return engine
         
     @staticmethod
-    def load_connection_information():
+    def _load_connection_information():
         """
         Load the path to the database credentials file from an environment file.
         Returns the path and the database name.
         """
 
         try:
-            load_dotenv("app/database/credentials.env", override=True)
+            load_dotenv("app/database/access_information.env", override=True)
             credentials_file_path = os.getenv("CREDENTIALS_FILE_PATH")
             dbname = os.getenv("DBNAME")
 
@@ -57,7 +57,7 @@ class PostgresConnection:
         return credentials_file_path, dbname
     
     @staticmethod
-    def load_connection_credentials(credentials_file_path: str):
+    def _load_connection_credentials(credentials_file_path: str):
         """
         Load the database credentials from the specified credentials file path.
         Returns the host, port, user, and password of the database.
