@@ -1,5 +1,5 @@
 # API Authentication Management
-[![NPM](https://img.shields.io/npm/l/react)](https://github.com/heitorfoschiani/APIAuthenticationManagement/blob/main/LICENSE)
+[![NPM](https://img.shields.io/npm/l/react)](https://github.com/heitorfoschiani/APIAuthManagement/blob/main/LICENSE)
 
 A secure Flask API that requires user authentication and manages access.
 
@@ -24,7 +24,7 @@ Ensure you have the following installed:
 ### Installation
 1. Clone the repository:
     ```bash
-    git clone https://github.com/heitorfoschiani/APIAuthenticationManagement.git
+    git clone https://github.com/heitorfoschiani/APIAuthManagement.git
     ```
 
 2. Install the required packages (It is recommended that it be carried out within a virtual environment):
@@ -41,9 +41,9 @@ Ensure you have the following installed:
     DBPASSWORD=your_password123
     ```
 
-2. Then, go to the "APIAuthenticationManagement -> app -> database -> credential.env", and update the "CREDENTIALS_FILE_PATH" variable with the path to the .env file you've saved on your computer.
+2. Then, go to the "APIAuthManagement -> app -> database -> credential.env", and update the "CREDENTIALS_FILE_PATH" variable with the path to the .env file you've saved on your computer.
 
-3. Finally, create a database called "AuthenticationManagement" on your postgres sever or, if you want to connect with another database, you can change the variable "DBNAME" in "APIAuthenticationManagement -> app -> database -> credential.env"
+3. Finally, create a database called "AuthenticationManagement" on your postgres sever or, if you want to connect with another database, you can change the variable "DBNAME" in "APIAuthManagement -> app -> database -> credential.env"
 
 ### Initialize the app
 1. Run at prompt:
@@ -84,7 +84,7 @@ Ensure you have the following installed:
 ## Starting a new project on top of this
 1. Make sure you have knowledge about Flask and Flask-RESTX;
 
-2. Create a new blueprint folder on "APIAuthenticationManagement -> app -> api -> blueprints";
+2. Create a new blueprint folder on "APIAuthManagement -> app -> api -> blueprints";
 
 3. Following the existing bluepirint structure "auth_management", create the same folders and files:
     ```
