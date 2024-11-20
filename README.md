@@ -43,7 +43,7 @@ Ensure you have the following installed:
 
 2. Then, go to the "APIAuthManagement -> app -> database -> access_information.env", and update the "CREDENTIALS_FILE_PATH" variable with the path to the .env file you've saved on your computer.
 
-3. Finally, create a database called "AuthenticationManagement" on your postgres sever or, if you want to connect with another database, you can change the variable "DBNAME" in "APIAuthManagement -> app -> database -> credential.env"
+3. Finally, create a database called "AuthenticationManagement" on your postgres sever or, if you want to connect with another database, you can change the variable "DBNAME" in "APIAuthManagement -> app -> database -> access_information.env"
 
 ### Initialize the app
 1. Run at prompt:
