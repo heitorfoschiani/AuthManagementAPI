@@ -1,4 +1,4 @@
-from app.api.blueprints import add_blueprint
+from app.api import add_blueprint
 from .database import initialize_database
 from .namespaces.user.resources import user_namespace
 from .namespaces.privilege.resources import privilege_namespace
