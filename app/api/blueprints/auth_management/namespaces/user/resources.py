@@ -325,7 +325,7 @@ class Authenticate(Resource):
         user = User.get({"username": username})
         if not user or "inactive" in user.privileges():
             current_app.logger.error("Non-existing or inactive username.")
-            abort(404, "Non-existing or inactive username.")
+            abort(404, "Non-existing username.")
         
         user_password_hash = user.get_password_hash()
         bcrypt = current_app.config["flask_bcrypt"]
@@ -365,9 +365,9 @@ class RefreshAuthentication(Resource):
             "user_id": current_user.id
         })
 
-        if not user:
-            current_app.logger.error("User not founded")
-            abort(404, "User not founded")
+        if not user or "inactive" in user.privileges():
+            current_app.logger.error("Non-existing or inactive user.")
+            abort(404, "Non-existing username.")
 
         access_token = create_access_token(identity=user)
         refresh_token = create_refresh_token(identity=user)
