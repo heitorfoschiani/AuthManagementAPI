@@ -1,47 +1,55 @@
-from functools import wraps
-from flask import request, current_app
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import os
 
 
-def configure_logging():
-    log_format = "%(asctime)s - %(levelname)s - %(message)s"
-    date_format = "%Y-%m-%d %H:%M:%S"
+class LoggerConfig:
+    def __init__(self):
+        self.log_file = os.path.join("app/logs/files", "api.log")
+        self.backup_directory = os.path.join("app/logs/files", "Backup")
+        self.log_format = "%(asctime)s - %(levelname)s - %(message)s"
+        self.date_format = "%Y-%m-%d %H:%M:%S"
 
-    file_handler = TimedRotatingFileHandler(
-        'app/logs/api.log', 
-        when="D", 
-        interval=1, 
-        backupCount=1
-    )
-    file_handler.setFormatter(logging.Formatter(
-        fmt=log_format, 
-        datefmt=date_format
-    ))
+    def create_formatter(self):
+        """
+        Create a logging formatter.
+        """
 
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter(
-        fmt=log_format, 
-        datefmt=date_format
-    ))
+        logging_formatter = logging.Formatter(
+            fmt=self.log_format, 
+            datefmt=self.date_format
+        )
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+        return logging_formatter
+
+    def create_file_handler(self):
+        """
+        Create and configure the file handler.
+        """
+
+        file_handler = TimedRotatingFileHandler(
+            self.log_file,
+            when="midnight",
+            interval=1,
+            backupCount=0
+        )
+        
+        file_handler.namer = lambda name: os.path.join(
+            self.backup_directory,
+            f"api_{os.path.basename(name).split('.')[1]}.log"
+        )
+        file_handler.setFormatter(self.create_formatter())
+
+        return file_handler
+
+    def create_console_handler(self):
+        """
+        Create and configure the console handler.
+        """
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(self.create_formatter())
+
+        return console_handler
 
 
-def log_request_headers_information(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        current_app.logger.info(f"Request Headers: {request.headers}")
-        return f(*args, **kwargs)
-    return decorated_function
-
-def log_request_body_information(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if request.data:
-            current_app.logger.info(f"Request Body: {request.get_json()}")
-        return f(*args, **kwargs)
-    return decorated_function

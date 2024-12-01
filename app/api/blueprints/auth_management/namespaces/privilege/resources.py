@@ -3,7 +3,7 @@ from flask_restx import Namespace, Resource
 from flask_jwt_extended import jwt_required, current_user
 
 from app.auth import require_privileges
-from app.logs import log_request_headers_information, log_request_body_information
+from app.logs.decorators import log_request_headers_information, log_request_body_information
 from app.api.blueprints.auth_management.namespaces.user import User
 from app.api.blueprints.auth_management.namespaces.privilege import Privilege
 from .models import privilege_model

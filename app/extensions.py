@@ -20,6 +20,7 @@ def configure_extensions(app, config_class=Config):
         user = User.get({
             "user_id": identity
         })
+
         return user
     
     app.config.from_object(config_class)

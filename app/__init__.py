@@ -1,6 +1,6 @@
 from flask import Flask
 
-from .logs import configure_logging
+from .logs.config import configure_logging
 from .database import initialize_database
 from .extensions import configure_extensions
 from .api.blueprints.auth_management.register import register_auth_management_blueprint
