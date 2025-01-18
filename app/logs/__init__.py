@@ -1,12 +1,10 @@
 import logging
-from logging.handlers import TimedRotatingFileHandler
-import os
+from logging import FileHandler
 
 
 class LoggerConfig:
     def __init__(self):
-        self.log_file = os.path.join("app/logs/files", "api.log")
-        self.backup_directory = os.path.join("app/logs/files", "Backup")
+        self.log_file = "app/logs/files/api.log"
         self.log_format = "%(asctime)s - %(levelname)s - %(message)s"
         self.date_format = "%Y-%m-%d %H:%M:%S"
 
@@ -27,17 +25,7 @@ class LoggerConfig:
         Create and configure the file handler.
         """
 
-        file_handler = TimedRotatingFileHandler(
-            self.log_file,
-            when="midnight",
-            interval=1,
-            backupCount=0
-        )
-        
-        file_handler.namer = lambda name: os.path.join(
-            self.backup_directory,
-            f"api_{os.path.basename(name).split('.')[1]}.log"
-        )
+        file_handler = FileHandler(self.log_file)
         file_handler.setFormatter(self.create_formatter())
 
         return file_handler
@@ -51,5 +39,3 @@ class LoggerConfig:
         console_handler.setFormatter(self.create_formatter())
 
         return console_handler
-
-

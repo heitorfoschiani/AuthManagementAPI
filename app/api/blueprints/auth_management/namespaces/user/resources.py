@@ -50,7 +50,7 @@ class UserManagement(Resource):
 
         try:
             user = User(
-                id=0, 
+                id=None, 
                 full_name=js_data.get("full_name").lower(), 
                 username=js_data.get("username").lower(), 
                 email=js_data.get("email").lower(), 

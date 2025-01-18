@@ -12,5 +12,6 @@ def configure_logging():
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+    
     logger.addHandler(logger_config.create_file_handler())
     logger.addHandler(logger_config.create_console_handler())
