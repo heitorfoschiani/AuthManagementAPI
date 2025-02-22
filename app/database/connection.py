@@ -42,7 +42,7 @@ class PostgresConnection:
         """
 
         try:
-            load_dotenv("app/database/access_information.env", override=True)
+            load_dotenv("app/database/db_access_information.env", override=True)
             credentials_file_path = os.getenv("CREDENTIALS_FILE_PATH")
             dbname = os.getenv("DBNAME")
 
