@@ -9,10 +9,11 @@ from .api.blueprints.auth_management.register import register_auth_management_bl
 def create_app():
     app = Flask(__name__)
     
-    configure_extensions(app)
     configure_logging()
     initialize_database()
 
     register_auth_management_blueprint(app)
+
+    configure_extensions(app)
     
     return app
