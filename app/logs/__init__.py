@@ -1,5 +1,6 @@
 import logging
 from logging import FileHandler
+import os
 
 
 class LoggerConfig:
@@ -7,6 +8,15 @@ class LoggerConfig:
         self.log_file = "app/logs/files/api.log"
         self.log_format = "%(asctime)s - %(levelname)s - %(message)s"
         self.date_format = "%Y-%m-%d %H:%M:%S"
+        self.ensure_log_directory_exists()
+
+    def ensure_log_directory_exists(self):
+        """
+        Ensure that the directory for the log file exists.
+        If it doesn't, create it.
+        """
+        log_dir = os.path.dirname(self.log_file)
+        os.makedirs(log_dir, exist_ok=True)
 
     def create_file_handler(self):
         """
