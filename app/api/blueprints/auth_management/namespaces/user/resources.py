@@ -166,7 +166,7 @@ class UserManagement(Resource):
             if js_data["phone"] == user.phone:
                 js_data.pop("phone")
             else:
-                user.username = js_data["phone"]
+                user.phone = js_data["phone"]
 
         if "password" in js_data:
             bcrypt = current_app.config["flask_bcrypt"]
