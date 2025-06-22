@@ -277,7 +277,7 @@ class User:
             """, (self.full_name,))
             fetch = cursor.fetchone()
         except:
-            raise Exception("Unable to check if full_name alredy exists")
+            raise Exception("Unable to check if full_name already exists")
         finally:
             conn.close()
 
@@ -300,7 +300,7 @@ class User:
             """, (self.username,))
             fetch = cursor.fetchone()
         except:
-            raise Exception("Unable to check if username alredy exists")
+            raise Exception("Unable to check if username already exists")
         finally:
             conn.close()
 
@@ -323,7 +323,7 @@ class User:
             """, (self.email,))
             fetch = cursor.fetchone()
         except:
-            raise Exception("Unable to check if email alredy exists")
+            raise Exception("Unable to check if email already exists")
         finally:
             conn.close()
 
