@@ -116,5 +116,11 @@ Ensure you have the following installed:
 
 4. Use your knowlege aboud Flask-RESTX and this project construction to create a new feature for your API
 
+### Running tests
+Execute the automated tests with `pytest`:
+```bash
+pytest
+```
+
 ## Contact
 For any questions, please contact-me: heitor.foschiani@outlook.com
