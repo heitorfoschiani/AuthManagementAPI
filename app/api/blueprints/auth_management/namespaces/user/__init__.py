@@ -44,6 +44,7 @@ class User:
                 INSERT INTO userpasswords (user_id, password)
                 VALUES (%s, %s);
             """, (user_id, password_hash))
+            
             conn.commit()
         except Exception as e:
             raise Exception(f"Unable to register user: {e}")

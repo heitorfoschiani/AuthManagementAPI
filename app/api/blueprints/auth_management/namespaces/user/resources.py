@@ -57,7 +57,7 @@ class UserManagement(Resource):
                 phone=js_data.get("phone")
             )
         except Exception as e:
-            current_app.logger.error(500, f"An error occorred when create user into the server: {e}")
+            current_app.logger.error(f"An error occorred when create user into the server: {e}")
             abort(500, "An error occorred when create user into the server")
 
         try:
@@ -73,14 +73,14 @@ class UserManagement(Resource):
                 current_app.logger.error(f"User with email '{user.email}' already exists")
                 abort(409, f"User with email '{user.email}' already exists")
         except Exception as e:
-            current_app.logger.error(500, f"An error occorred when check informations: {e}")
+            current_app.logger.error(f"An error occorred when check informations: {e}")
             abort(500, "An error occorred when check informations")
 
         try:
             bcrypt = current_app.config["flask_bcrypt"]
             hashed_password = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
         except Exception as e:
-            current_app.logger.error(500, f"An error occorred when encrypt password: {e}")
+            current_app.logger.error(f"An error occorred when encrypt password: {e}")
             abort(500, "An error occorred when encypt password")
         
         try:
@@ -93,7 +93,7 @@ class UserManagement(Resource):
             access_token = create_access_token(identity=user)
             refresh_token = create_refresh_token(identity=user)
         except Exception as e:
-            current_app.logger.error(500, f"An error occorred when generates access tokens: {e}")
+            current_app.logger.error(f"An error occorred when generates access tokens: {e}")
             abort(500, "An error occorred when generates access tokens")
 
         user_access_information = {
@@ -190,6 +190,7 @@ class UserManagement(Resource):
         """,
         responses={
             200: "User successfully inactivated", 
+            400: "Bad request - invalid parameters", 
             403: "Forbidden - User does not have the necessary privileges", 
             404: "User not found", 
             409: "User is already inactive", 
@@ -197,15 +198,20 @@ class UserManagement(Resource):
         },
         security="jsonWebToken"
     )
-    @user_namespace.expect(user_id_parse)
+    @user_namespace.expect(user_id_parse, username_parse)
     @jwt_required()
     @log_request_headers_information
     @log_request_body_information
     def delete(self):
-        parse_data = user_id_parse.parse_args()
+        user_id_parse_data = user_id_parse.parse_args()
+        username_parse_data = username_parse.parse_args()
 
-        user_id = parse_data.get("user_id")
-        username = parse_data.get("username")
+        user_id = user_id_parse_data.get("user_id")
+        username = username_parse_data.get("username")
+
+        if user_id and username:
+            current_app.logger.error("Can only provide either user_id or username, not both")
+            abort(400, "Can only provide either user_id or username, not both")
 
         if user_id:
             user = User.get({"user_id": user_id})
