@@ -12,8 +12,7 @@ class User:
         self.email = email
         self.phone = phone
 
-    def register(self, password_hash: str):
-        postgres_connection = PostgresConnection()
+    def register(self, password_hash: str, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -49,17 +48,17 @@ class User:
         except Exception as e:
             raise Exception(f"Unable to register user: {e}")
         finally:
+            cursor.close()
             conn.close()
         
         self.id = user_id
 
         if self.id == 1:
-            self.set_privilege(privilege="administrator")
+            self.set_privilege("administrator", postgres_connection)
         else:
-            self.set_privilege(privilege="basic")
+            self.set_privilege("basic", postgres_connection)
     
-    def update(self, update_information: dict):
-        postgres_connection = PostgresConnection()
+    def update(self, update_information: dict, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -130,10 +129,10 @@ class User:
         except Exception as e:
             raise Exception(f"Unable to update user information: {e}")
         finally:
+            cursor.close()
             conn.close()
     
-    def inactivate(self):
-        postgres_connection = PostgresConnection()
+    def inactivate(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -145,7 +144,8 @@ class User:
             fetch = cursor.fetchone()
             if not fetch:
                 conn.close()
-                return False
+                raise Exception(f"Id not known in database for 'inactive' privilege")
+            
             privilege_id = int(fetch[0])
 
             cursor.execute("""
@@ -165,10 +165,10 @@ class User:
         except Exception as e:
             raise Exception(f"Unable to inactive user: {e}")
         finally:
+            cursor.close()
             conn.close()
 
-    def set_privilege(self, privilege: str):
-        postgres_connection = PostgresConnection()
+    def set_privilege(self, privilege: str, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -201,10 +201,10 @@ class User:
         except Exception as e:
             raise Exception(f"Unable to set user the '{privilege}' privilege: {e}")
         finally:
+            cursor.close()
             conn.close()
     
-    def delete_privilege(self, privilege: str):
-        postgres_connection = PostgresConnection()
+    def delete_privilege(self, privilege: str, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -221,10 +221,10 @@ class User:
         except Exception as e:
             raise Exception(f"Unable to remove the '{privilege}' privilege from user: {e}")
         finally:
+            cursor.close()
             conn.close()
     
-    def privileges(self):
-        postgres_connection = PostgresConnection()
+    def privileges(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -233,7 +233,7 @@ class User:
                 SELECT fkuserprivileges.privilege FROM useraccess
                 INNER JOIN fkuserprivileges ON useraccess.privilege_id = fkuserprivileges.id
                 WHERE 
-                    useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    useraccess.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                     useraccess.user_id = %s;
             """, (self.id,))
             fetch = cursor.fetchall()
@@ -243,12 +243,12 @@ class User:
         except Exception as e:
             return []
         finally:
+            cursor.close()
             conn.close()
 
         return privileges_list
     
-    def get_password_hash(self):
-        postgres_connection = PostgresConnection()
+    def get_password_hash(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -256,19 +256,19 @@ class User:
             cursor.execute("""
                 SELECT password FROM userpasswords 
                 WHERE 
-                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                    status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                     user_id = %s;
             """, (self.id,))
             user_password_hash = cursor.fetchone()[0]
         except:
             return None
         finally:
+            cursor.close()
             conn.close()
 
         return user_password_hash
     
-    def full_name_exists(self):
-        postgres_connection = PostgresConnection()
+    def full_name_exists(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -280,6 +280,7 @@ class User:
         except:
             raise Exception("Unable to check if full_name already exists")
         finally:
+            cursor.close()
             conn.close()
 
         if not fetch:
@@ -287,8 +288,7 @@ class User:
 
         return True
 
-    def username_exists(self):
-        postgres_connection = PostgresConnection()
+    def username_exists(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -303,6 +303,7 @@ class User:
         except:
             raise Exception("Unable to check if username already exists")
         finally:
+            cursor.close()
             conn.close()
 
         if not fetch:
@@ -310,8 +311,7 @@ class User:
 
         return True
 
-    def email_exists(self):
-        postgres_connection = PostgresConnection()
+    def email_exists(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -326,6 +326,7 @@ class User:
         except:
             raise Exception("Unable to check if email already exists")
         finally:
+            cursor.close()
             conn.close()
 
         if not fetch:
@@ -334,8 +335,7 @@ class User:
         return True
     
     @staticmethod
-    def get(user_information: dict):
-        postgres_connection = PostgresConnection()
+    def get(user_information: dict, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -343,18 +343,18 @@ class User:
             if "user_id" in user_information:
                 cursor.execute("""
                     SELECT 
-                        fkusers.id,
-                        fkusers.full_name,
-                        useremails.email,
-                        userphones.phone,
-                        usernames.username
+                        fkusers.id, 
+                        fkusers.full_name, 
+                        useremails.email, 
+                        userphones.phone, 
+                        usernames.username 
                     FROM fkusers
                     LEFT JOIN useremails ON useremails.user_id = fkusers.id
                     LEFT JOIN userphones ON userphones.user_id = fkusers.id
                     LEFT JOIN usernames ON usernames.user_id = fkusers.id
                     WHERE 
-                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         fkusers.id = %s;
                 """, 
@@ -363,18 +363,18 @@ class User:
             elif "username" in user_information:
                 cursor.execute("""
                     SELECT 
-                        fkusers.id,
-                        fkusers.full_name,
-                        useremails.email,
-                        userphones.phone,
+                        fkusers.id, 
+                        fkusers.full_name, 
+                        useremails.email, 
+                        userphones.phone, 
                         usernames.username
                     FROM fkusers
                     LEFT JOIN useremails ON useremails.user_id = fkusers.id
                     LEFT JOIN userphones ON userphones.user_id = fkusers.id
                     LEFT JOIN usernames ON usernames.user_id = fkusers.id
                     WHERE 
-                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
-                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND
+                        useremails.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
+                        userphones.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         usernames.status_id = (SELECT id FROM fkstatus WHERE status = 'valid') AND 
                         usernames.username = %s;
                 """, 
@@ -383,6 +383,7 @@ class User:
         except Exception as e:
             return None
         finally:
+            cursor.close()
             conn.close()
 
         if user_data:

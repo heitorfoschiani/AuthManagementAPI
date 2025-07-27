@@ -2,8 +2,9 @@ from .connection import PostgresConnection
 
 
 class PostgresTableCreator:
-    def __init__(self, table_name: str):
+    def __init__(self, postgres_connection: PostgresConnection, table_name: str):
         self.table_name = table_name
+        self.postgres_connection = postgres_connection
 
     def create_table(self, table_columns: list, foreign_key: bool=False):
         if self._table_exists():
@@ -22,7 +23,7 @@ class PostgresTableCreator:
         except Exception as e:
             raise Exception(f"Unable to get create table query: {e}")
         
-        postgres_connection = PostgresConnection()
+        postgres_connection = self.postgres_connection
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -64,7 +65,7 @@ class PostgresTableCreator:
         - bool: True or False for exists or not.        
         """
         
-        postgres_connection = PostgresConnection()
+        postgres_connection = self.postgres_connection
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -85,9 +86,8 @@ class PostgresTableCreator:
 
         return exists
     
-    @staticmethod
-    def _get_valid_status_id():
-        postgres_connection = PostgresConnection()
+    def _get_valid_status_id(self):
+        postgres_connection = self.postgres_connection
         conn = postgres_connection.connect()
         cursor = conn.cursor()
         

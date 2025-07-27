@@ -8,40 +8,42 @@ from .tables.userphones import create_table_userphones
 from app.api.blueprints.auth_management.namespaces.privilege import Privilege
 
 
-def initialize_database():
+def initialize_database(app):
+    postgres_connection = app.config["postgres_connection"]
+
     try:
-        create_table_fkusers()
+        create_table_fkusers(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create users table: {e}")
     
     try:
-        create_table_fkuserprivileges()
+        create_table_fkuserprivileges(postgres_connection)
         privileges_list = ["administrator", "manager", "basic", "inactive"]
-        list(Privilege(name).register() for name in privileges_list)
+        list(Privilege(name).register(postgres_connection) for name in privileges_list)
     except Exception as e:
         raise Exception(f"An error occored when create fkuserprivileges table: {e}")
     
     try:
-        create_table_useraccess()
+        create_table_useraccess(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create useraccess table: {e}")
     
     try:
-        create_table_useremails()
+        create_table_useremails(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create useremails table: {e}")
     
     try:
-        create_table_usernames()
+        create_table_usernames(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create usernames table: {e}")
     
     try:
-        create_table_userpasswords()
+        create_table_userpasswords(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create userpasswords table: {e}")
     
     try:
-        create_table_userphones()
+        create_table_userphones(postgres_connection)
     except Exception as e:
         raise Exception(f"An error occored when create _userphones table: {e}")

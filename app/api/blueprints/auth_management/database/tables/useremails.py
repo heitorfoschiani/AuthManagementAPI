@@ -1,7 +1,8 @@
+from app.database.connection import PostgresConnection
 from app.database.creation import PostgresTableCreator
 
 
-def create_table_useremails():
+def create_table_useremails(postgres_connection: PostgresConnection):
     """
     This function creates 'useremails' table into the database
     """
@@ -12,6 +13,7 @@ def create_table_useremails():
     ]
 
     postgres_table_creator = PostgresTableCreator(
+        postgres_connection=postgres_connection, 
         table_name="useremails"
     )
 

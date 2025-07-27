@@ -4,9 +4,10 @@ from flask_cors import CORS
 
 from .config import Config
 from .api.blueprints.auth_management.namespaces.user import User
+from .database.connection import PostgresConnection
 
 
-def configure_extensions(app, config_class=Config):
+def configure_extensions(app, enviroment: str, config_class=Config):
     jwt = JWTManager(app)
 
     @jwt.user_identity_loader
@@ -26,5 +27,7 @@ def configure_extensions(app, config_class=Config):
     app.config.from_object(config_class)
     app.config["jwt"] = jwt
     app.config["flask_bcrypt"] = Bcrypt(app)
+    app.config["enviroment"] = enviroment
+    app.config["postgres_connection"] = PostgresConnection(enviroment)
     
     CORS(app)

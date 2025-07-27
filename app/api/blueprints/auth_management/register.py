@@ -6,7 +6,7 @@ from . import auth_management_api, auth_management_blueprint
 
 
 def register_auth_management_blueprint(app):
-    initialize_database()
+    initialize_database(app)
 
     add_blueprint(
         app=app, 

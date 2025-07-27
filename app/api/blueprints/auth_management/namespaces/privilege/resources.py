@@ -33,7 +33,7 @@ class PrivilegeManagement(Resource):
     @log_request_body_information
     def get(self):
         try:
-            dict_user_privileges = Privilege.get_user_privileges()
+            dict_user_privileges = Privilege.get_user_privileges(current_app.config["postgres_connection"])
         except Exception as e:
             current_app.logger.error(f"An error occurred when get userprivilege: {e}")
             abort(500, "An error occurred when get userprivilege")
@@ -71,7 +71,7 @@ class UserPrivilege(Resource):
 
         privilege_name = js_data["privilege"].lower()
         try:
-            privilege = Privilege.get_privilege(privilege_name)
+            privilege = Privilege.get_privilege(privilege_name, current_app.config["postgres_connection"])
         except Exception as e:
             current_app.logger.error(f"An error occorred when get '{privilege_name}' privilege: {e}")
             abort(500, f"An error occorred when get '{privilege_name}' privilege")
@@ -138,7 +138,7 @@ class UserPrivilege(Resource):
     @log_request_body_information
     def delete(self, user_id):
         privilege_name = privilege_namespace.payload.get("privilege").lower()
-        privilege = Privilege.get_privilege(privilege_name)
+        privilege = Privilege.get_privilege(privilege_name, current_app.config["postgres_connection"])
         if not privilege:
             current_app.logger.error(f"Non-existing privilege")
             abort(404, "Non-existing privilege")

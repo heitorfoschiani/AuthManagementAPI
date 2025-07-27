@@ -1,12 +1,12 @@
 from app.database.connection import PostgresConnection
+from flask import current_app
 
 
 class Privilege:
     def __init__(self, name):
         self.name = name
 
-    def register(self):
-        postgres_connection = PostgresConnection()
+    def register(self, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -25,11 +25,11 @@ class Privilege:
         except Exception as e:
             raise Exception(f"Unable to register privilege: {e}")
         finally:
+            cursor.close()
             conn.close()
     
     @staticmethod
-    def get_privilege(privilege_name: str):
-        postgres_connection = PostgresConnection()
+    def get_privilege(privilege_name: str, postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
         
@@ -47,13 +47,13 @@ class Privilege:
         except Exception as e:
             raise Exception(f"Unable to get '{privilege_name}' privilege: {e}")
         finally:
+            cursor.close()
             conn.close()
 
         return privilege
     
     @staticmethod
-    def get_user_privileges():
-        postgres_connection = PostgresConnection()
+    def get_user_privileges(postgres_connection: PostgresConnection):
         conn = postgres_connection.connect()
         cursor = conn.cursor()
 
@@ -71,6 +71,7 @@ class Privilege:
         except Exception as e:
             raise Exception(f"Unable to get user privileges: {e}")
         finally:
+            cursor.close()
             conn.close()
         
         dict_user_privileges = {}
