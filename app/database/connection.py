@@ -16,8 +16,11 @@ class PostgresConnection:
         self.dbpassword = dbpassword
         self.dbname = dbname
         self.environment = environment
+
+        if self.environment == "Test":
+            self._drop_database(dbname)
         
-    def connect(self, connection_type: str="connection", test_environment: bool=False):
+    def connect(self, connection_type: str="connection"):
         """
         This function creates a connection with a PostgreSQL database and returns the connection or the engine, as specified in 'connection_type'.
         """
@@ -44,42 +47,18 @@ class PostgresConnection:
 
             return engine
 
-    def _create_database(self, dbname: str):
-        try:
-            conn = psycopg2.connect(
-                host=self.dbhost, 
-                port=self.dbport, 
-                user=self.dbuser, 
-                password=self.dbpassword, 
-                dbname="postgres"
-            )
-            conn.autocommit = True
-
-            cursor = conn.cursor()
-
-            cursor.execute(sql.SQL("CREATE DATABASE {}").format(
-                sql.Identifier(dbname)
-            ))
-
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            raise Exception(f"Postgres Database creation has failed: {e}")
-        finally:
-            cursor.close()
-            conn.close()
-
     def _database_exists(self, dbname: str) -> bool:
-        try:
-            conn = psycopg2.connect(
-                host=self.dbhost, 
-                port=self.dbport, 
-                user=self.dbuser, 
-                password=self.dbpassword, 
-                dbname="postgres"
-            )
+        conn = psycopg2.connect(
+            host=self.dbhost, 
+            port=self.dbport, 
+            user=self.dbuser, 
+            password=self.dbpassword, 
+            dbname="postgres"
+        )
 
-            cursor = conn.cursor()
+        cursor = conn.cursor()
+
+        try:
             cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s;", (dbname,))
 
             exists = cursor.fetchone() is not None
@@ -90,6 +69,67 @@ class PostgresConnection:
             conn.close()
 
         return exists
+
+    def _create_database(self, dbname: str):
+        conn = psycopg2.connect(
+            host=self.dbhost, 
+            port=self.dbport, 
+            user=self.dbuser, 
+            password=self.dbpassword, 
+            dbname="postgres"
+        )
+
+        conn.autocommit = True
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(
+                sql.Identifier(dbname)
+            ))
+
+            conn.commit()
+        except Exception as e:
+            raise Exception(f"Postgres Database creation has failed: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+
+    def _drop_database(self, dbname: str) -> None:
+        """
+        Drops the specified PostgreSQL database if it exists.
+        """
+        
+        conn = psycopg2.connect(
+            host=self.dbhost,
+            port=self.dbport,
+            user=self.dbuser,
+            password=self.dbpassword,
+            dbname="postgres"
+        )
+        
+        conn.autocommit = True
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(
+                """
+                SELECT pg_terminate_backend(pid)
+                    FROM pg_stat_activity
+                WHERE datname = %s
+                    AND pid <> pg_backend_pid();
+                """, (dbname,)
+            )
+
+            cursor.execute(
+                sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(dbname))
+            )
+
+            conn.commit()
+        except Exception as e:
+            raise Exception(f"Postgres Database dropping has failed: {e}")
+        finally:
+            cursor.close()
+            conn.close()
         
     @staticmethod
     def _load_connection_information():

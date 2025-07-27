@@ -1,5 +1,3 @@
-
-
 def test_register_user(client):
     response = client.post(
         "/auth-management/user/", 
