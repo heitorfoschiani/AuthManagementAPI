@@ -60,15 +60,17 @@ class UserManagement(Resource):
             current_app.logger.error(f"An error occorred when create user into the server: {e}")
             abort(500, "An error occorred when create user into the server")
 
-        if user.full_name_exists(current_app.config["postgres_connection"]):
+        postgres_connection = current_app.config["postgres_connection"]
+
+        if user.full_name_exists(postgres_connection):
             current_app.logger.error(f"User with username '{user.full_name}' already exists.")
             abort(409, f"User with username '{user.full_name}' already exists.")
 
-        if user.username_exists(current_app.config["postgres_connection"]):
+        if user.username_exists(postgres_connection):
             current_app.logger.error(f"User with username '{user.username}' already exists.")
             abort(409, f"User with username '{user.username}' already exists.")
 
-        if user.email_exists(current_app.config["postgres_connection"]):
+        if user.email_exists(postgres_connection):
             current_app.logger.error(f"User with email '{user.email}' already exists.")
             abort(409, f"User with email '{user.email}' already exists.")
 
@@ -80,7 +82,7 @@ class UserManagement(Resource):
             abort(500, "An error occorred when encypt password")
         
         try:
-            user.register(hashed_password, current_app.config["postgres_connection"])
+            user.register(hashed_password, postgres_connection)
         except Exception as e:
             current_app.logger.error(f"An error occorred when register user: {e}")
             abort(500, "An error occorred when register user")
@@ -125,13 +127,15 @@ class UserManagement(Resource):
             current_app.logger.error("The user id is required")
             abort(400, "The user id is required")
 
-        user = User.get({"user_id": user_id}, current_app.config["postgres_connection"])
+        postgres_connection = current_app.config["postgres_connection"]
+
+        user = User.get({"user_id": user_id}, postgres_connection)
         if not user:
             current_app.logger.error("User not founded")
             abort(404, "User not founded")
 
-        user_privileges = user.privileges(current_app.config["postgres_connection"])
-        current_user_privileges = current_user.privileges(current_app.config["postgres_connection"])
+        user_privileges = user.privileges(postgres_connection)
+        current_user_privileges = current_user.privileges(postgres_connection)
         if ("administrator" in user_privileges or "manager" in user_privileges) and "administrator" not in current_user_privileges:
             abort(403, "Insufficient privileges for inactivate an administrator")
 
@@ -143,7 +147,7 @@ class UserManagement(Resource):
                 js_data.pop("username")
             else:
                 user.username = js_data["username"]
-                if user.username_exists(current_app.config["postgres_connection"]):
+                if user.username_exists(postgres_connection):
                     current_app.logger.error(f"User with username '{user.username}' already exists.")
                     abort(409, f"User with username '{user.username}' already exists.")
 
@@ -152,7 +156,7 @@ class UserManagement(Resource):
                 js_data.pop("email")
             else:
                 user.email = js_data["email"]
-                if user.email_exists(current_app.config["postgres_connection"]):
+                if user.email_exists(postgres_connection):
                     current_app.logger.error(f"User with email '{user.email}' already exists.")
                     abort(409, f"User with email '{user.email}' already exists.")
 
@@ -165,12 +169,12 @@ class UserManagement(Resource):
         if "password" in js_data:
             bcrypt = current_app.config["flask_bcrypt"]
             js_data["password"] = bcrypt.generate_password_hash(js_data["password"]).decode("utf-8")
-            user_current_password_hash = user.get_password_hash(current_app.config["postgres_connection"])
+            user_current_password_hash = user.get_password_hash(postgres_connection)
             if bcrypt.check_password_hash(user_current_password_hash.encode("utf-8"), js_data["password"]):
                 js_data.pop("password")
 
         try:
-            user.update(js_data, current_app.config["postgres_connection"])
+            user.update(js_data, postgres_connection)
         except Exception as e:
             current_app.logger.error(f"An error occurred when update user information: {e}")
             abort(500, "An error occurred when update user information")
@@ -207,10 +211,12 @@ class UserManagement(Resource):
             current_app.logger.error("Can only provide either user_id or username, not both")
             abort(400, "Can only provide either user_id or username, not both")
 
+        postgres_connection = current_app.config["postgres_connection"]
+
         if user_id:
-            user = User.get({"user_id": user_id}, current_app.config["postgres_connection"])
+            user = User.get({"user_id": user_id}, postgres_connection)
         elif username:
-            user = User.get({"username": username}, current_app.config["postgres_connection"])
+            user = User.get({"username": username}, postgres_connection)
         else:
             user = current_user
 
@@ -218,12 +224,12 @@ class UserManagement(Resource):
             current_app.logger.error("User not founded")
             abort(404, "User not founded")
 
-        user_privileges = user.privileges(current_app.config["postgres_connection"])
+        user_privileges = user.privileges(postgres_connection)
         if "inactive" in user_privileges:
             current_app.logger.error("User is already inactive")
             abort(409, "User is already inactive")
 
-        current_user_privileges = current_user.privileges(current_app.config["postgres_connection"])
+        current_user_privileges = current_user.privileges(postgres_connection)
         if ("administrator" in user_privileges or "manager" in user_privileges) and "administrator" not in current_user_privileges:
             abort(403, "Insufficient privileges for inactivate an administrator")
 
@@ -231,14 +237,14 @@ class UserManagement(Resource):
             abort(403, "Insufficient privileges for inactivate a user")
 
         try:
-            user.inactivate(current_app.config["postgres_connection"])
+            user.inactivate(postgres_connection)
         except Exception as e:
             current_app.logger.error(f"An error occurred when inactivate user: {e}")
             abort(500, "An error occurred when inactivate user")
 
         user_privilege_information = {
             "id": user.id,
-            "privileges": user.privileges(current_app.config["postgres_connection"]), 
+            "privileges": user.privileges(postgres_connection), 
         }
 
         return user_privilege_information
@@ -273,20 +279,22 @@ class UserManagement(Resource):
             current_app.logger.error("Can only provide either user_id or username, not both")
             abort(400, "Can only provide either user_id or username, not both")
         
+        postgres_connection = current_app.config["postgres_connection"]
+
         if not user_id and not username:
             user_id = current_user.id 
             user = current_user
         elif user_id:
-            user = User.get({"user_id": user_id}, current_app.config["postgres_connection"])
+            user = User.get({"user_id": user_id}, postgres_connection)
         elif username:
-            user = User.get({"username": username}, current_app.config["postgres_connection"])
+            user = User.get({"username": username}, postgres_connection)
 
         if not user:
             current_app.logger.error("User not founded")
             abort(404, "User not founded")
         
-        user_privileges = user.privileges(current_app.config["postgres_connection"])
-        current_user_privileges = current_user.privileges(current_app.config["postgres_connection"])
+        user_privileges = user.privileges(postgres_connection)
+        current_user_privileges = current_user.privileges(postgres_connection)
         if "inactive" in user_privileges and ("administrator" not in current_user_privileges and "manager" not in current_user_privileges):
             current_app.logger.error("User not founded")
             abort(404, "User not founded")
@@ -318,12 +326,14 @@ class Authenticate(Resource):
 
         username = js_data.get("username").lower()
 
-        user = User.get({"username": username}, current_app.config["postgres_connection"])
-        if not user or "inactive" in user.privileges(current_app.config["postgres_connection"]):
+        postgres_connection = current_app.config["postgres_connection"]
+
+        user = User.get({"username": username}, postgres_connection)
+        if not user or "inactive" in user.privileges(postgres_connection):
             current_app.logger.error("Non-existing or inactive username.")
             abort(404, "Non-existing username.")
         
-        user_password_hash = user.get_password_hash(current_app.config["postgres_connection"])
+        user_password_hash = user.get_password_hash(postgres_connection)
         bcrypt = current_app.config["flask_bcrypt"]
         if not bcrypt.check_password_hash(user_password_hash.encode("utf-8"), user_namespace.payload.get("password")):
             current_app.logger.error("Incorrect password")
@@ -361,7 +371,9 @@ class RefreshAuthentication(Resource):
             "user_id": current_user.id
         })
 
-        if not user or "inactive" in user.privileges(current_app.config["postgres_connection"]):
+        postgres_connection = current_app.config["postgres_connection"]
+
+        if not user or "inactive" in user.privileges(postgres_connection):
             current_app.logger.error("Non-existing or inactive user.")
             abort(404, "Non-existing username.")
 
